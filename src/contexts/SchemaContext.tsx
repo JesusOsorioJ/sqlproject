@@ -2,10 +2,12 @@
 import React, {
   createContext,
   useContext,
+  type ReactNode,
+
   useEffect,
   useState,
-  ReactNode,
 } from 'react';
+
 
 // ——————————— Definiciones de tipos ———————————
 

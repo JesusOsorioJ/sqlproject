@@ -15,7 +15,7 @@ const App: React.FC = () => {
 
   return (
     <SchemaProvider>
-      <div className="min-h-screen bg-gray-50 p-6 space-y-8">
+      <div className="min-h-screen bg-gray-50 p-6 space-y-8 text-gray-950 w-screen">
         {/* 1) Editor de esquema (IA → JSON) */}
         <div className="bg-white p-4 rounded shadow">
           <h2 className="text-2xl font-bold mb-2">

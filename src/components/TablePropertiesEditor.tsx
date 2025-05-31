@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from "react";
 import {
   useSchema,
-  TableDef,
-  FieldDef,
-  Relationship,
+} from "../contexts/SchemaContext";
+import {
+  type TableDef,
+  type FieldDef,
+  type Relationship,
 } from "../contexts/SchemaContext";
 
 interface Props {

@@ -7,13 +7,12 @@ import ReactFlow, {
   type Edge,
   useNodesState,
   useEdgesState,
-  OnConnectStartParams,
   ConnectionMode,
   MarkerType,
   addEdge,
-  removeElements,
 } from "react-flow-renderer";
-import { useSchema, TableDef, Relationship } from "../contexts/SchemaContext";
+import { useSchema } from "../contexts/SchemaContext";
+import type { TableDef, Relationship } from "../contexts/SchemaContext";
 
 interface DiagramProps {
   className?: string;
