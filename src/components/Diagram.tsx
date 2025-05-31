@@ -3,31 +3,35 @@ import React, { useMemo, useState } from "react";
 import ReactFlow, {
   Background,
   Controls,
-  type Node,
-  type Edge,
   useNodesState,
   useEdgesState,
+  type Node,
+  type Edge,
   ConnectionMode,
   MarkerType,
-  addEdge,
 } from "react-flow-renderer";
-import { useSchema } from "../contexts/SchemaContext";
-import type { TableDef, Relationship } from "../contexts/SchemaContext";
+import type { NodeTypes } from "react-flow-renderer";
+import {
+  useSchema,
+  type TableDef,
+  type FieldDef,
+  type Relationship,
+} from "../contexts/SchemaContext";
+
+import TableNode from "./TableNode";
 
 interface DiagramProps {
   className?: string;
   onTableSelect: (tableName: string) => void;
 }
 
-/**
- * Este componente solo dibuja nodos (tablas) y aristas (relaciones). 
- * Usa React Flow. Cuando el usuario hace clic en un nodo, dispara onTableSelect.
- */
 export default function Diagram({
   className,
   onTableSelect,
 }: DiagramProps) {
   const { fullState, loading, removeRelationship } = useSchema();
+
+  // Estados de React Flow
   const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>(
     []
   );
@@ -35,29 +39,44 @@ export default function Diagram({
     []
   );
 
-  // 1) Cada vez que fullState.schema cambie, recalculamos nodos y aristas
+  // Seguimiento de nodos expandidos
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Función para alternar expansión
+  const toggleExpand = (tableName: string) => {
+    setExpandedNodes((prev) => {
+      const copy = new Set(prev);
+      if (copy.has(tableName)) copy.delete(tableName);
+      else copy.add(tableName);
+      return copy;
+    });
+  };
+
+  // 1) Reconstruir nodos y aristas cuando cambie el esquema o expandedNodes
   useMemo(() => {
     if (!fullState || loading) return;
 
-    // ——— Nodos: un Node por cada TableDef —————————————
+    // Nodos: type = "tableNode"
     const newNodes: Node[] = fullState.schema.tables.map(
       (table: TableDef, idx: number) => ({
         id: table.name,
-        data: { label: table.name },
-        // Posición inicial: separamos en X según idx, y en Y fijo (puedes ajustar)
+        type: "tableNode",
         position: { x: 220 * idx, y: 20 },
-        style: {
-          border: "1px solid #333",
-          borderRadius: 4,
-          padding: 8,
-          backgroundColor: "#f9f9f9",
-          minWidth: 120,
-          textAlign: "center",
+        data: {
+          tableName: table.name,
+          fields: table.fields,
+          onOpenEditor: onTableSelect,
+          isExpanded: expandedNodes.has(table.name),
+          toggleExpand,
+          // Si cerramos el nodo, seteamos selectedTable="" en App
+          closeEditor: () => onTableSelect(""),
         },
       })
     );
 
-    // ——— Aristas: un Edge por cada Relationship —————————————
+    // Aristas para cada relación
     const newEdges: Edge[] = fullState.schema.relationships.map(
       (rel: Relationship, idx: number) => ({
         id: `rel-${idx}`,
@@ -81,31 +100,31 @@ export default function Diagram({
     fullState?.schema.tables,
     fullState?.schema.relationships,
     loading,
+    expandedNodes,
+    onTableSelect,
     setNodes,
     setEdges,
   ]);
 
-  // 2) Manejador cuando el usuario hace clic en un nodo: onTableSelect(tableId)
-  const onNodeClick = (
-    _evt: React.MouseEvent,
-    node: Node
-  ) => {
-    onTableSelect(node.id);
-  };
+  // 2) Memoizar nodeTypes para evitar warnings de React Flow
+  const nodeTypes: NodeTypes = useMemo(
+    () => ({
+      tableNode: TableNode,
+    }),
+    []
+  );
 
-  // 3) Permitir eliminar una relación con doble clic sobre el edge
+  // 3) Eliminar relación con doble clic en el edge
   const onEdgeDoubleClick = (
-    evt: React.MouseEvent,
+    _evt: React.MouseEvent,
     edge: Edge
   ) => {
-    // Buscamos el índice de la relación en fullState.schema.relationships
     if (!fullState) return;
     const idx = fullState.schema.relationships.findIndex(
       (rel) =>
         rel.sourceTable === edge.source &&
         rel.targetTable === edge.target &&
-        `${rel.sourceField} → ${rel.targetField}` ===
-          edge.label
+        `${rel.sourceField} → ${rel.targetField}` === edge.label
     );
     if (idx >= 0) {
       removeRelationship(idx);
@@ -127,10 +146,10 @@ export default function Diagram({
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
           onEdgeDoubleClick={onEdgeDoubleClick}
           fitView
           connectionMode={ConnectionMode.Loose}
+          nodeTypes={nodeTypes}
         >
           <Background color="#eee" gap={12} />
           <Controls />
