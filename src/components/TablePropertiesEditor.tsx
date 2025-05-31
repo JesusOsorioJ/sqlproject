@@ -1,7 +1,6 @@
 // src/components/TablePropertiesEditor.tsx
 import React, { useState, useEffect } from "react";
-import { useSchema } from "../contexts/SchemaContext";
-import type { TableDef, FieldDef } from "../contexts/SchemaContext";
+import { useSchema, type TableDef, type FieldDef } from "../contexts/SchemaContext";
 
 interface Props {
   tableName: string;
@@ -28,7 +27,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
 
   if (!fullState) return null;
 
-  const table: TableDef | undefined = fullState.schema.tables.find((t) => t.name === tableName);
+  const table: TableDef | undefined = fullState.schema.tables.find(
+    (t) => t.name === tableName
+  );
   if (!table) {
     return (
       <div>
@@ -55,7 +56,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
 
   // —— Eliminar tabla —————————————————————
   const handleDeleteTable = () => {
-    if (window.confirm(`¿Seguro que deseas eliminar la tabla “${tableName}”?`)) {
+    if (
+      window.confirm(`¿Seguro que deseas eliminar la tabla “${tableName}”?`)
+    ) {
       removeTable(tableName);
     }
   };
@@ -96,8 +99,15 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     const oldName = table.fields[idx].name;
     const newNameTrim = editFieldName.trim();
     if (!newNameTrim) return;
-    if (newNameTrim !== oldName && table.fields.find((f) => f.name === newNameTrim)) return;
-    updateField(tableName, oldName, { ...table.fields[idx], name: newNameTrim });
+    if (
+      newNameTrim !== oldName &&
+      table.fields.find((f) => f.name === newNameTrim)
+    )
+      return;
+    updateField(tableName, oldName, {
+      ...table.fields[idx],
+      name: newNameTrim,
+    });
     setEditingFieldIdx(null);
     setEditFieldName("");
   };
@@ -106,7 +116,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
   const [relSourceField, setRelSourceField] = useState<string>("");
   const [relTargetTable, setRelTargetTable] = useState<string>("");
   const [relTargetField, setRelTargetField] = useState<string>("");
-  const [relCardinality, setRelCardinality] = useState<"1:1" | "1:N" | "N:1" | "N:M">("1:N");
+  const [relCardinality, setRelCardinality] = useState<
+    "1:1" | "1:N" | "N:1" | "N:M"
+  >("1:N");
   const [relError, setRelError] = useState<string | null>(null);
 
   const handleAddRelationship = () => {
@@ -152,7 +164,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     setRelCardinality("1:N");
   };
 
-  const otherTables = fullState.schema.tables.filter((t) => t.name !== tableName);
+  const otherTables = fullState.schema.tables.filter(
+    (t) => t.name !== tableName
+  );
 
   return (
     <div className="p-4 space-y-4">
@@ -178,7 +192,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
             Eliminar
           </button>
         </div>
-        {renameError && <p className="text-red-600 text-sm mt-1">{renameError}</p>}
+        {renameError && (
+          <p className="text-red-600 text-sm mt-1">{renameError}</p>
+        )}
       </div>
 
       {/* —— 2: Campos de la tabla —— */}
@@ -214,7 +230,8 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
                 <div className="flex-1">
                   <span className="font-medium">{f.name}</span>{" "}
                   <span className="text-xs text-gray-500">
-                    ({f.type}{f.required ? ", requerido" : ", opcional"})
+                    ({f.type}
+                    {f.required ? ", requerido" : ", opcional"})
                   </span>
                 </div>
                 <div className="space-x-1">
@@ -284,7 +301,8 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
         {fullState.schema.relationships
           .map((rel, idx) => ({ rel, idx }))
           .filter(
-            ({ rel }) => rel.sourceTable === tableName || rel.targetTable === tableName
+            ({ rel }) =>
+              rel.sourceTable === tableName || rel.targetTable === tableName
           )
           .map(({ rel, idx }) => {
             const isSource = rel.sourceTable === tableName;
@@ -295,13 +313,17 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
                     <>
                       <strong>{rel.sourceField}</strong>→
                       {rel.targetTable}.{rel.targetField}{" "}
-                      <span className="text-xs text-gray-500">({rel.cardinality})</span>
+                      <span className="text-xs text-gray-500">
+                        ({rel.cardinality})
+                      </span>
                     </>
                   ) : (
                     <>
                       {rel.sourceTable}.{rel.sourceField}→
                       <strong>{rel.targetField}</strong>{" "}
-                      <span className="text-xs text-gray-500">({rel.cardinality})</span>
+                      <span className="text-xs text-gray-500">
+                        ({rel.cardinality})
+                      </span>
                     </>
                   )}
                 </span>
@@ -315,7 +337,8 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
             );
           })}
         {fullState.schema.relationships.filter(
-          (rel) => rel.sourceTable === tableName || rel.targetTable === tableName
+          (rel) =>
+            rel.sourceTable === tableName || rel.targetTable === tableName
         ).length === 0 && (
           <p className="italic text-gray-500">No hay relaciones para esta tabla.</p>
         )}
@@ -341,14 +364,22 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
               ))}
             </select>
 
-            {/* 2) Tabla destino */}
-            <label className="text-sm font-medium">Tabla destino</label>
+            {/* 2) Tabla destino (con tooltip de ayuda) */}
+            <label className="text-sm font-medium">
+              Tabla destino{" "}
+              <span
+                className="ml-1 text-gray-400 cursor-help"
+                title="Tabla que contiene el campo al que quieres relacionar"
+              >
+                (?)
+              </span>
+            </label>
             <select
               className="w-full border px-2 py-1 rounded"
               value={relTargetTable}
               onChange={(e) => {
                 setRelTargetTable(e.target.value);
-                setRelTargetField(""); // limpiamos selección de campo destino
+                setRelTargetField("");
               }}
             >
               <option value="">-- Selecciona tabla --</option>
@@ -384,14 +415,22 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
               </>
             )}
 
-            {/* 4) Seleccionar cardinalidad */}
-            <label className="text-sm font-medium">Cardinalidad</label>
+            {/* 4) Seleccionar cardinalidad (con tooltip) */}
+            <label className="text-sm font-medium">
+              Cardinalidad{" "}
+              <span
+                className="ml-1 text-gray-400 cursor-help"
+                title="Define cuántos registros de una tabla se relacionan con cuántos de la otra"
+              >
+                (?)
+              </span>
+            </label>
             <select
               className="w-full border px-2 py-1 rounded"
               value={relCardinality}
               onChange={(e) =>
                 setRelCardinality(
-                  e.target.value as '1:1' | '1:N' | 'N:1' | 'N:M'
+                  e.target.value as "1:1" | "1:N" | "N:1" | "N:M"
                 )
               }
             >
