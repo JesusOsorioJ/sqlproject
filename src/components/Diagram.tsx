@@ -9,8 +9,8 @@ import ReactFlow, {
   type Edge,
   ConnectionMode,
   MarkerType,
-  type NodeTypes,
 } from "react-flow-renderer";
+import type { NodeTypes } from "react-flow-renderer";
 import {
   useSchema,
   type TableDef,
@@ -30,14 +30,11 @@ export default function Diagram({
 }: DiagramProps) {
   const { fullState, loading, removeRelationship } = useSchema();
 
-  // Estados de nodos y aristas de React Flow
   const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>([]);
 
-  // Seguimiento de nodos expandidos
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  // Alternar expansión de un nodo
   const toggleExpand = (tableName: string) => {
     setExpandedNodes((prev) => {
       const copy = new Set(prev);
@@ -47,11 +44,9 @@ export default function Diagram({
     });
   };
 
-  // Reconstruir nodos y aristas cuando cambie el esquema o expandedNodes
   useMemo(() => {
     if (!fullState || loading) return;
 
-    // 1) Construir nodos tipo "tableNode"
     const newNodes: Node[] = fullState.schema.tables.map(
       (table: TableDef, idx: number) => ({
         id: table.name,
@@ -68,7 +63,6 @@ export default function Diagram({
       })
     );
 
-    // 2) Construir aristas con sourceHandle y targetHandle, mostrando cardinalidad
     const newEdges: Edge[] = fullState.schema.relationships.map(
       (rel: Relationship, idx: number) => ({
         id: `rel-${idx}`,
@@ -100,7 +94,6 @@ export default function Diagram({
     setEdges,
   ]);
 
-  // Memoizar nodeTypes para TableNode
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       tableNode: TableNode,
@@ -108,7 +101,6 @@ export default function Diagram({
     []
   );
 
-  // Doble clic en arista para eliminar relación
   const onEdgeDoubleClick = (_evt: React.MouseEvent, edge: Edge) => {
     if (!fullState) return;
     const idx = fullState.schema.relationships.findIndex(
@@ -123,10 +115,7 @@ export default function Diagram({
   };
 
   return (
-    <div
-      className={className}
-      style={{ width: "100%", height: "500px" }}
-    >
+    <div className={className} style={{ width: "100%", height: "500px" }}>
       {loading || !fullState ? (
         <p>Cargando esquema…</p>
       ) : fullState.schema.tables.length === 0 ? (

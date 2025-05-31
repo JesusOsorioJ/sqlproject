@@ -1,7 +1,7 @@
 // src/components/DataEditor.tsx
 import React, { useState, useEffect } from "react";
-import { useSchema } from "../contexts/SchemaContext";
-import type { TableDef, FieldDef, RowData } from "../contexts/SchemaContext";
+import { useSchema, type TableDef, type RowData } from "../contexts/SchemaContext";
+import type { FieldDef } from "../contexts/SchemaContext";
 
 interface Props {
   tableName: string;

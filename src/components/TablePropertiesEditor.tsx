@@ -1,7 +1,7 @@
 // src/components/TablePropertiesEditor.tsx
 import React, { useState, useEffect } from "react";
-import { useSchema, type TableDef } from "../contexts/SchemaContext";
-import type { FieldDef } from "../contexts/SchemaContext";
+import { useSchema } from "../contexts/SchemaContext";
+import type { TableDef, FieldDef } from "../contexts/SchemaContext";
 
 interface Props {
   tableName: string;
@@ -212,9 +212,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
             ) : (
               <>
                 <div className="flex-1">
-                  <span className="font-medium">{f.name}</span>{' '}
+                  <span className="font-medium">{f.name}</span>{" "}
                   <span className="text-xs text-gray-500">
-                    ({f.type}{f.required ? ', requerido' : ', opcional'})
+                    ({f.type}{f.required ? ", requerido" : ", opcional"})
                   </span>
                 </div>
                 <div className="space-x-1">
@@ -294,13 +294,13 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
                   {isSource ? (
                     <>
                       <strong>{rel.sourceField}</strong>→
-                      {rel.targetTable}.{rel.targetField}{' '}
+                      {rel.targetTable}.{rel.targetField}{" "}
                       <span className="text-xs text-gray-500">({rel.cardinality})</span>
                     </>
                   ) : (
                     <>
                       {rel.sourceTable}.{rel.sourceField}→
-                      <strong>{rel.targetField}</strong>{' '}
+                      <strong>{rel.targetField}</strong>{" "}
                       <span className="text-xs text-gray-500">({rel.cardinality})</span>
                     </>
                   )}

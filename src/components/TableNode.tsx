@@ -27,7 +27,9 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
   // Altura de cada campo en modo expandido
   const fieldHeight = 20;
   // Calculamos la altura total
-  const nodeHeight = isExpanded ? baseHeight + fields.length * fieldHeight : baseHeight;
+  const nodeHeight = isExpanded
+    ? baseHeight + fields.length * fieldHeight
+    : baseHeight;
 
   // Handler para “Ver detalles” / “Cerrar”
   const handleToggle = () => {
@@ -40,10 +42,10 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
   return (
     <div
       className="border rounded-lg bg-white shadow-sm font-sans text-sm relative"
-    //   style={{
-    //     width: isExpanded ? 200 : 120,
-    //     height: nodeHeight,
-    //   }}
+      style={{
+        width: isExpanded ? 200 : 120,
+        height: nodeHeight,
+      }}
     >
       {/* Si está expandido, renderizamos un Handle target y source por cada campo */}
       {isExpanded &&
@@ -104,7 +106,7 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
 
       {/* Contenido del nodo */}
       <div className="p-2">
-        <div className="flex gap-2 justify-between items-center mb-1">
+        <div className="flex justify-between items-center mb-1">
           <span className="font-medium">{tableName}</span>
           <button
             onClick={handleToggle}

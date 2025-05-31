@@ -1,36 +1,37 @@
 // src/App.tsx
 import React, { useState } from 'react';
-import { SchemaProvider } from './contexts/SchemaContext';
+import { SchemaProvider, useSchema } from './contexts/SchemaContext';
 
-import Sidebar from './components/Sidebar';
-import type { ModuleKey } from './components/Sidebar';
+import Sidebar, { type ModuleKey } from './components/Sidebar';
 import SchemaEditor from './components/SchemaEditor';
 import AddTableForm from './components/AddTableForm';
 import Diagram from './components/Diagram';
 import TablePropertiesEditor from './components/TablePropertiesEditor';
 import DataEditor from './components/DataEditor';
 import QueryToSQL from './components/QueryToSQL';
-import ExportJSON from './components/ExportJSON';
-import { useSchema } from './contexts/SchemaContext';
+import Overview from './components/Overview';
 
 const App: React.FC = () => {
-  // Estado para la sección seleccionada en el sidebar
-  const [selectedModule, setSelectedModule] = useState<ModuleKey>('create-schema');
-  // Estado para saber qué tabla está seleccionada (para las secciones "manage-tables" y "edit-data")
+  // 1) Índice del módulo activo
+  const [selectedModule, setSelectedModule] = useState<ModuleKey>('schema');
+  // 2) Tabla actualmente seleccionada para “schema” y para “data-query”
   const [selectedTable, setSelectedTable] = useState<string>('');
 
   return (
     <SchemaProvider>
-      <div className="flex h-screen overflow-hidden w-screen">
-        {/* Barra lateral izquierda */}
+      <div className="flex h-screen overflow-hidden w-screen text-gray-900">
+        {/* Sidebar */}
         <Sidebar selected={selectedModule} onSelect={setSelectedModule} />
 
-        {/* Contenido principal a la derecha */}
-        <main className="flex-1 ml-60 overflow-auto bg-gray-50 p-6 text-gray-900 ">
-          {/* 1) Crear Esquema */}
-          {selectedModule === 'create-schema' && (
+        {/* Contenido principal */}
+        <main className="flex-1 ml-64 overflow-auto bg-gray-50 p-6">
+          
+          {/* ——— Módulo 1: Crear & Gestionar Tablas ——— */}
+          {selectedModule === 'schema' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold">1. Crear Esquema</h2>
+              <h2 className="text-2xl font-bold">1. Crear & Gestionar Tablas</h2>
+
+              {/* 1a) Editor de Esquema (texto + IA + tabla manual) */}
               <div className="bg-white p-4 rounded shadow space-y-4">
                 <SchemaEditor />
                 <div className="pt-4 border-t">
@@ -38,65 +39,79 @@ const App: React.FC = () => {
                   <AddTableForm />
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* 2) Gestionar Tablas */}
-          {selectedModule === 'manage-tables' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">2. Gestionar Tablas</h2>
+              {/* 1b) Diagrama + Propiedades */}
               <div className="flex gap-6">
+                {/* Diagrama */}
                 <div className="flex-1 bg-white rounded-lg shadow p-4">
                   <Diagram onTableSelect={setSelectedTable} />
                 </div>
+                {/* Panel de Propiedades */}
                 <div className="flex-1 space-y-4">
                   {selectedTable ? (
                     <div className="bg-white p-4 rounded shadow">
-                      <h3 className="text-xl font-semibold mb-2">Propiedades de “{selectedTable}”</h3>
+                      <h3 className="text-xl font-semibold mb-2">
+                        Propiedades de “{selectedTable}”
+                      </h3>
                       <TablePropertiesEditor tableName={selectedTable} />
                     </div>
                   ) : (
-                    <div className="italic text-gray-500">Haz clic en una tabla del diagrama para ver sus propiedades.</div>
+                    <div className="italic text-gray-500">
+                      Haz clic en “Ver detalles” &rarr; “Editar” en un nodo para ver sus propiedades.
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* 3) Modificar Datos */}
-          {selectedModule === 'edit-data' && (
+          {/* ——— Módulo 2: Registros & Consultas ——— */}
+          {selectedModule === 'data-query' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold">3. Modificar Datos</h2>
-              {selectedTable ? (
+              <h2 className="text-2xl font-bold">2. Registros & Consultas</h2>
+
+              {/* Selector de tabla compartido */}
+              <div className="bg-white p-4 rounded shadow">
+                <label className="block text-sm font-medium mb-1">Seleccionar tabla</label>
+                <TableDropdown
+                  selectedTable={selectedTable}
+                  onChange={setSelectedTable}
+                />
+              </div>
+
+              {/* Panel dividido: DataEditor (registros) a la izquierda y QueryToSQL (consultas) a la derecha */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 2.1 DataEditor */}
                 <div className="bg-white p-4 rounded shadow">
-                  <h3 className="text-xl font-semibold mb-2">Datos de “{selectedTable}”</h3>
-                  <DataEditor tableName={selectedTable} />
+                  <h3 className="text-xl font-semibold mb-2">Registros de “{selectedTable || '...' }”</h3>
+                  {selectedTable ? (
+                    <DataEditor tableName={selectedTable} />
+                  ) : (
+                    <p className="italic text-gray-500">
+                      Selecciona una tabla arriba para ver/editar registros.
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <div className="italic text-gray-500">
-                  Selecciona una tabla en la sección “Gestionar Tablas” para editar sus datos.
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* 4) Consultas */}
-          {selectedModule === 'queries' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">4. Consultas (NL → SQL)</h2>
-              <div className="bg-white p-4 rounded shadow">
-                <QueryToSQL />
+                {/* 2.2 QueryToSQL (pasa selectedTable como prop para ocultar su selector interno) */}
+                <div className="bg-white p-4 rounded shadow">
+                  <h3 className="text-xl font-semibold mb-2">Consultas sobre “{selectedTable || '...' }”</h3>
+                  {selectedTable ? (
+                    <QueryToSQL tableName={selectedTable} />
+                  ) : (
+                    <p className="italic text-gray-500">
+                      Selecciona una tabla arriba para habilitar consultas.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* 5) Exportar JSON */}
-          {selectedModule === 'export-json' && (
+          {/* ——— Módulo 3: Organización & Registros ——— */}
+          {selectedModule === 'overview' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold">5. Exportar Esquema + Datos</h2>
-              <div className="bg-white p-4 rounded shadow">
-                <ExportJSON />
-              </div>
+              <Overview />
             </div>
           )}
         </main>
@@ -106,3 +121,31 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+/**
+ * Componente auxiliar para mostrar un <select> con todas las tablas disponibles.
+ */
+interface TableDropdownProps {
+  selectedTable: string;
+  onChange: (newTable: string) => void;
+}
+
+const TableDropdown: React.FC<TableDropdownProps> = ({ selectedTable, onChange }) => {
+  const { fullState } = useSchema();
+  const tableOptions = fullState?.schema.tables.map((t) => t.name) || [];
+
+  return (
+    <select
+      className="w-full border px-2 py-1 rounded"
+      value={selectedTable}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="">-- Elige una tabla --</option>
+      {tableOptions.map((name) => (
+        <option key={name} value={name}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+};
