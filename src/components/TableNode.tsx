@@ -1,7 +1,6 @@
 // src/components/TableNode.tsx
 import React from "react";
-import { Handle, Position } from "react-flow-renderer";
-import type { NodeProps } from "react-flow-renderer";
+import { Handle, Position, type NodeProps } from "react-flow-renderer";
 import type { FieldDef } from "../contexts/SchemaContext";
 
 interface TableNodeData {
@@ -10,11 +9,10 @@ interface TableNodeData {
   onOpenEditor: (tableName: string) => void;
   isExpanded: boolean;
   toggleExpand: (tableName: string) => void;
-  // Nueva prop: cerrar el panel de propiedades
   closeEditor: () => void;
 }
 
-const TableNode: React.FC< NodeProps<TableNodeData> > = ({ data }) => {
+const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
   const {
     tableName,
     fields,
@@ -24,47 +22,104 @@ const TableNode: React.FC< NodeProps<TableNodeData> > = ({ data }) => {
     closeEditor,
   } = data;
 
-  // Handler del botón “Ver detalles” / “Cerrar”
+  // Altura base del nodo (título + paddings)
+  const baseHeight = 30;
+  // Altura de cada campo en modo expandido
+  const fieldHeight = 20;
+  // Calculamos la altura total
+  const nodeHeight = isExpanded ? baseHeight + fields.length * fieldHeight : baseHeight;
+
+  // Handler para “Ver detalles” / “Cerrar”
   const handleToggle = () => {
     if (isExpanded) {
-      // Si ya está expandido y clicamos “Cerrar”, entonces también cerramos el editor
-      closeEditor();
+      closeEditor(); // cierra el panel de propiedades
     }
     toggleExpand(tableName);
   };
 
   return (
     <div
-      className="border rounded-lg bg-white shadow-sm font-sans text-sm"
-    //   style={{ width: isExpanded ? 200 : 120 }}
+      className="border rounded-lg bg-white shadow-sm font-sans text-sm relative"
+    //   style={{
+    //     width: isExpanded ? 200 : 120,
+    //     height: nodeHeight,
+    //   }}
     >
-      {/* Handle superior (target) */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{ background: "#555" }}
-      />
+      {/* Si está expandido, renderizamos un Handle target y source por cada campo */}
+      {isExpanded &&
+        fields.map((f, idx) => {
+          // Calculamos desplazamiento vertical para cada campo
+          const topPosition = baseHeight + idx * fieldHeight + 4;
+          return (
+            <React.Fragment key={f.name}>
+              <Handle
+                type="target"
+                position={Position.Left}
+                id={`target__${tableName}__${f.name}`}
+                style={{
+                  top: topPosition,
+                  background: "#555",
+                  width: 8,
+                  height: 8,
+                }}
+              />
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={`source__${tableName}__${f.name}`}
+                style={{
+                  top: topPosition,
+                  background: "#555",
+                  width: 8,
+                  height: 8,
+                }}
+              />
+            </React.Fragment>
+          );
+        })}
 
-      {/* Contenido principal del nodo */}
+      {/* Si está colapsado, usamos un único handle arriba y abajo */}
+      {!isExpanded && (
+        <>
+          <Handle
+            type="target"
+            position={Position.Top}
+            style={{
+              background: "#555",
+              width: 8,
+              height: 8,
+            }}
+          />
+          <Handle
+            type="source"
+            position={Position.Bottom}
+            style={{
+              background: "#555",
+              width: 8,
+              height: 8,
+            }}
+          />
+        </>
+      )}
+
+      {/* Contenido del nodo */}
       <div className="p-2">
-        <div className="flex gap-1 flexjustify-between items-center mb-1">
-          <div className="font-medium">{tableName}</div>
+        <div className="flex gap-2 justify-between items-center mb-1">
+          <span className="font-medium">{tableName}</span>
           <button
             onClick={handleToggle}
-            className="text-xs text-white hover:underline"
+            className="text-xs text-blue-600 hover:underline"
             style={{ lineHeight: 1 }}
           >
-            {isExpanded ? "Cerrar" : "Detalles"}
+            {isExpanded ? "Cerrar" : "Ver detalles"}
           </button>
         </div>
 
         {isExpanded && (
           <div className="space-y-1">
-            <div className="max-h-28 overflow-y-auto">
+            <div className="overflow-y-auto max-h-32">
               {fields.length === 0 ? (
-                <p className="text-xs text-gray-500 italic">
-                  (Sin campos)
-                </p>
+                <p className="text-xs text-gray-500 italic">(Sin campos)</p>
               ) : (
                 fields.map((f) => (
                   <div
@@ -92,13 +147,6 @@ const TableNode: React.FC< NodeProps<TableNodeData> > = ({ data }) => {
           </div>
         )}
       </div>
-
-      {/* Handle inferior (source) */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{ background: "#555" }}
-      />
     </div>
   );
 };

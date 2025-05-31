@@ -9,12 +9,11 @@ import ReactFlow, {
   type Edge,
   ConnectionMode,
   MarkerType,
+  type NodeTypes,
 } from "react-flow-renderer";
-import type { NodeTypes } from "react-flow-renderer";
 import {
   useSchema,
   type TableDef,
-  type FieldDef,
   type Relationship,
 } from "../contexts/SchemaContext";
 
@@ -31,20 +30,14 @@ export default function Diagram({
 }: DiagramProps) {
   const { fullState, loading, removeRelationship } = useSchema();
 
-  // Estados de React Flow
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>(
-    []
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>(
-    []
-  );
+  // Estados de nodos y aristas de React Flow
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>([]);
 
   // Seguimiento de nodos expandidos
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
-    new Set()
-  );
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  // Función para alternar expansión
+  // Alternar expansión de un nodo
   const toggleExpand = (tableName: string) => {
     setExpandedNodes((prev) => {
       const copy = new Set(prev);
@@ -54,11 +47,11 @@ export default function Diagram({
     });
   };
 
-  // 1) Reconstruir nodos y aristas cuando cambie el esquema o expandedNodes
+  // Reconstruir nodos y aristas cuando cambie el esquema o expandedNodes
   useMemo(() => {
     if (!fullState || loading) return;
 
-    // Nodos: type = "tableNode"
+    // 1) Construir nodos tipo "tableNode"
     const newNodes: Node[] = fullState.schema.tables.map(
       (table: TableDef, idx: number) => ({
         id: table.name,
@@ -70,23 +63,24 @@ export default function Diagram({
           onOpenEditor: onTableSelect,
           isExpanded: expandedNodes.has(table.name),
           toggleExpand,
-          // Si cerramos el nodo, seteamos selectedTable="" en App
           closeEditor: () => onTableSelect(""),
         },
       })
     );
 
-    // Aristas para cada relación
+    // 2) Construir aristas con sourceHandle y targetHandle, mostrando cardinalidad
     const newEdges: Edge[] = fullState.schema.relationships.map(
       (rel: Relationship, idx: number) => ({
         id: `rel-${idx}`,
         source: rel.sourceTable,
+        sourceHandle: `source__${rel.sourceTable}__${rel.sourceField}`,
         target: rel.targetTable,
-        label: `${rel.sourceField} → ${rel.targetField}`,
+        targetHandle: `target__${rel.targetTable}__${rel.targetField}`,
+        label: `${rel.sourceField}→${rel.targetField} (${rel.cardinality})`,
         type: "smoothstep",
         animated: false,
         style: { stroke: "#555", strokeWidth: 1.5 },
-        labelBgStyle: { fill: "#fff", fillOpacity: 0.8 },
+        labelBgStyle: { fill: "#fff", fillOpacity: 0.8, padding: "2px" },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: "#555",
@@ -106,7 +100,7 @@ export default function Diagram({
     setEdges,
   ]);
 
-  // 2) Memoizar nodeTypes para evitar warnings de React Flow
+  // Memoizar nodeTypes para TableNode
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       tableNode: TableNode,
@@ -114,17 +108,14 @@ export default function Diagram({
     []
   );
 
-  // 3) Eliminar relación con doble clic en el edge
-  const onEdgeDoubleClick = (
-    _evt: React.MouseEvent,
-    edge: Edge
-  ) => {
+  // Doble clic en arista para eliminar relación
+  const onEdgeDoubleClick = (_evt: React.MouseEvent, edge: Edge) => {
     if (!fullState) return;
     const idx = fullState.schema.relationships.findIndex(
       (rel) =>
         rel.sourceTable === edge.source &&
         rel.targetTable === edge.target &&
-        `${rel.sourceField} → ${rel.targetField}` === edge.label
+        `${rel.sourceField}→${rel.targetField} (${rel.cardinality})` === edge.label
     );
     if (idx >= 0) {
       removeRelationship(idx);

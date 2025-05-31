@@ -1,16 +1,9 @@
 // src/components/SchemaEditor.tsx
 import React, { useState } from "react";
 import { useSchema } from "../contexts/SchemaContext";
-import type { SchemaDef, TableDef, FieldDef, Relationship } from "../contexts/SchemaContext";
+import type { SchemaDef } from "../contexts/SchemaContext";
 
-/**
- * Este componente simula la llamada a IA. 
- * En producción reemplaza `mockGenerateSchema` por fetch('/api/schema').
- */
-const mockGenerateSchema = async (
-  description: string
-): Promise<SchemaDef> => {
-  // Ejemplo muy simple: si el texto contiene "e-commerce", devolvemos tres tablas.
+const mockGenerateSchema = async (description: string): Promise<SchemaDef> => {
   if (description.toLowerCase().includes("e-commerce")) {
     const schema: SchemaDef = {
       tables: [
@@ -35,44 +28,21 @@ const mockGenerateSchema = async (
           name: "Ventas",
           fields: [
             { name: "id", type: "INT", required: true },
-            {
-              name: "usuario_id",
-              type: "INT",
-              required: true,
-            },
-            {
-              name: "producto_id",
-              type: "INT",
-              required: true,
-            },
+            { name: "usuario_id", type: "INT", required: true },
+            { name: "producto_id", type: "INT", required: true },
             { name: "fecha", type: "DATE", required: true },
             { name: "cantidad", type: "INT", required: true },
           ],
         },
       ],
       relationships: [
-        {
-          sourceTable: "Ventas",
-          sourceField: "usuario_id",
-          targetTable: "Usuarios",
-          targetField: "id",
-        },
-        {
-          sourceTable: "Ventas",
-          sourceField: "producto_id",
-          targetTable: "Productos",
-          targetField: "id",
-        },
+        { sourceTable: "Ventas", sourceField: "usuario_id", targetTable: "Usuarios", targetField: "id", cardinality: "N:1" },
+        { sourceTable: "Ventas", sourceField: "producto_id", targetTable: "Productos", targetField: "id", cardinality: "N:1" },
       ],
     };
-    // Simular retardo:
-    return new Promise((resolve) =>
-      setTimeout(() => resolve(schema), 500)
-    );
+    return new Promise((resolve) => setTimeout(() => resolve(schema), 500));
   } else {
-    return Promise.reject(
-      new Error("Mock IA: no se reconoció la descripción.")
-    );
+    return Promise.reject(new Error("Mock IA: no se reconoció la descripción."));
   }
 };
 
@@ -88,9 +58,7 @@ const SchemaEditor: React.FC = () => {
       return;
     }
     try {
-      const newSchema: SchemaDef = await mockGenerateSchema(
-        text.trim()
-      );
+      const newSchema: SchemaDef = await mockGenerateSchema(text.trim());
       setSchema(newSchema);
     } catch (e: any) {
       setError(e.message || "Error generando esquema.");
@@ -105,14 +73,10 @@ const SchemaEditor: React.FC = () => {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      {error && (
-        <p className="text-red-600 text-sm">{error}</p>
-      )}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
       <button
         className={`px-4 py-2 rounded text-white ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
         }`}
         onClick={handleGenerate}
         disabled={loading}

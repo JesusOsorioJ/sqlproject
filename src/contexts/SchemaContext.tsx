@@ -2,12 +2,10 @@
 import React, {
   createContext,
   useContext,
-  type ReactNode,
-
   useEffect,
   useState,
+  type ReactNode,
 } from 'react';
-
 
 // ——————————— Definiciones de tipos ———————————
 
@@ -22,11 +20,13 @@ export interface TableDef {
   fields: FieldDef[];
 }
 
+// Extendemos Relationship para incluir la cardinalidad
 export interface Relationship {
   sourceTable: string;
   sourceField: string;
   targetTable: string;
   targetField: string;
+  cardinality: '1:1' | '1:N' | 'N:1' | 'N:M';
 }
 
 export interface SchemaDef {
@@ -34,7 +34,7 @@ export interface SchemaDef {
   relationships: Relationship[];
 }
 
-/** Cada fila es un objeto { [campo: string]: valor }. */
+// Cada fila es un objeto { [campo: string]: valor }.
 export type RowData = Record<string, any>;
 
 /** DataDef: para cada tabla guardamos un array de filas. */
@@ -48,6 +48,7 @@ export interface FullState {
 }
 
 // ——— Interfaz del Contexto —————————————————————
+
 export interface SchemaContextValue {
   fullState: FullState | null;
   loading: boolean;
@@ -58,39 +59,26 @@ export interface SchemaContextValue {
   removeTable: (tableName: string) => void;
   renameTable: (oldName: string, newName: string) => void;
 
-  addField: (
-    tableName: string,
-    field: FieldDef
-  ) => void;
-  updateField: (
-    tableName: string,
-    oldFieldName: string,
-    newField: FieldDef
-  ) => void;
+  addField: (tableName: string, field: FieldDef) => void;
+  updateField: (tableName: string, oldFieldName: string, newField: FieldDef) => void;
   removeField: (tableName: string, fieldName: string) => void;
 
   addRelationship: (rel: Relationship) => void;
-  removeRelationship: (relId: number) => void; // usaremos índice para identif.
+  removeRelationship: (relId: number) => void;
 
   // operaciones sobre datos
   addRow: (tableName: string, row: RowData) => void;
-  updateRow: (
-    tableName: string,
-    rowIndex: number,
-    newRow: RowData
-  ) => void;
+  updateRow: (tableName: string, rowIndex: number, newRow: RowData) => void;
   removeRow: (tableName: string, rowIndex: number) => void;
 }
 
 const SchemaContext = createContext<SchemaContextValue | undefined>(undefined);
 
-// ——— Claves para localStorage —————————————————————
-const LS_KEY = "sqlJsonEditorState";
+// ——— Clave para localStorage —————————————————————
+const LS_KEY = 'sqlJsonEditorState';
 
 // ——— Proveedor del Contexto —————————————————————
-export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [fullState, setFullState] = useState<FullState | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -102,8 +90,8 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
         const parsed: FullState = JSON.parse(json);
         setFullState(parsed);
       } catch (e) {
-        console.warn("No se pudo parsear localStorage:", e);
-        // inicializamos en blanco
+        console.warn('No se pudo parsear localStorage:', e);
+        // Estado inicial vacío
         setFullState({
           schema: { tables: [], relationships: [] },
           data: {},
@@ -123,12 +111,9 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     if (!loading && fullState !== null) {
       try {
-        window.localStorage.setItem(
-          LS_KEY,
-          JSON.stringify(fullState)
-        );
+        window.localStorage.setItem(LS_KEY, JSON.stringify(fullState));
       } catch (e) {
-        console.error("Error guardando en localStorage:", e);
+        console.error('Error guardando en localStorage:', e);
       }
     }
   }, [fullState, loading]);
@@ -162,15 +147,8 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
   const addTable = (tableName: string) => {
     if (!fullState) return;
     // Evitamos duplicados
-    if (
-      fullState.schema.tables.find((t) => t.name === tableName)
-    ) {
-      return;
-    }
-    const newTable: TableDef = {
-      name: tableName,
-      fields: [],
-    };
+    if (fullState.schema.tables.find((t) => t.name === tableName)) return;
+    const newTable: TableDef = { name: tableName, fields: [] };
     const updatedSchema: SchemaDef = {
       ...fullState.schema,
       tables: [...fullState.schema.tables, newTable],
@@ -184,14 +162,10 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
 
   const removeTable = (tableName: string) => {
     if (!fullState) return;
-    const filteredTables = fullState.schema.tables.filter(
-      (t) => t.name !== tableName
-    );
-    // También eliminamos relaciones que involucren a esta tabla
+    const filteredTables = fullState.schema.tables.filter((t) => t.name !== tableName);
+    // Eliminamos relaciones que involucren a esta tabla
     const filteredRels = fullState.schema.relationships.filter(
-      (rel) =>
-        rel.sourceTable !== tableName &&
-        rel.targetTable !== tableName
+      (rel) => rel.sourceTable !== tableName && rel.targetTable !== tableName
     );
     const updatedSchema: SchemaDef = {
       tables: filteredTables,
@@ -207,9 +181,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
 
   const renameTable = (oldName: string, newName: string) => {
     if (!fullState) return;
-    if (
-      fullState.schema.tables.find((t) => t.name === newName)
-    ) {
+    if (fullState.schema.tables.find((t) => t.name === newName)) {
       // No permitimos dos tablas con el mismo nombre
       return;
     }
@@ -217,18 +189,12 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
       t.name === oldName ? { ...t, name: newName } : t
     );
     // Actualizamos relaciones
-    const updatedRels = fullState.schema.relationships.map(
-      (rel) => {
-        let r = { ...rel };
-        if (r.sourceTable === oldName) {
-          r.sourceTable = newName;
-        }
-        if (r.targetTable === oldName) {
-          r.targetTable = newName;
-        }
-        return r;
-      }
-    );
+    const updatedRels = fullState.schema.relationships.map((rel) => {
+      let r = { ...rel };
+      if (r.sourceTable === oldName) r.sourceTable = newName;
+      if (r.targetTable === oldName) r.targetTable = newName;
+      return r;
+    });
     // Actualizamos data: movemos arreglo de filas a nueva key
     const newData: DataDef = { ...fullState.data };
     if (fullState.data[oldName]) {
@@ -242,17 +208,12 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     pushState({ schema: updatedSchema, data: newData });
   };
 
-  const addField = (
-    tableName: string,
-    field: FieldDef
-  ) => {
+  const addField = (tableName: string, field: FieldDef) => {
     if (!fullState) return;
     const updatedTables = fullState.schema.tables.map((t) => {
       if (t.name === tableName) {
         // Evitamos duplicar campo
-        if (t.fields.find((f) => f.name === field.name)) {
-          return t;
-        }
+        if (t.fields.find((f) => f.name === field.name)) return t;
         return { ...t, fields: [...t.fields, field] };
       }
       return t;
@@ -263,39 +224,25 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
-  const updateField = (
-    tableName: string,
-    oldFieldName: string,
-    newField: FieldDef
-  ) => {
+  const updateField = (tableName: string, oldFieldName: string, newField: FieldDef) => {
     if (!fullState) return;
     const updatedTables = fullState.schema.tables.map((t) => {
       if (t.name === tableName) {
-        const newFields = t.fields.map((f) =>
-          f.name === oldFieldName ? newField : f
-        );
+        const newFields = t.fields.map((f) => (f.name === oldFieldName ? newField : f));
         return { ...t, fields: newFields };
       }
       return t;
     });
-    // Si renombramos campo, hay que actualizar las relaciones que apuntan a ese campo
-    const updatedRels = fullState.schema.relationships.map(
-      (rel) => {
-        if (
-          rel.sourceTable === tableName &&
-          rel.sourceField === oldFieldName
-        ) {
-          return { ...rel, sourceField: newField.name };
-        }
-        if (
-          rel.targetTable === tableName &&
-          rel.targetField === oldFieldName
-        ) {
-          return { ...rel, targetField: newField.name };
-        }
-        return rel;
+    // Si renombramos campo, actualizamos relaciones que apuntan a ese campo
+    const updatedRels = fullState.schema.relationships.map((rel) => {
+      if (rel.sourceTable === tableName && rel.sourceField === oldFieldName) {
+        return { ...rel, sourceField: newField.name };
       }
-    );
+      if (rel.targetTable === tableName && rel.targetField === oldFieldName) {
+        return { ...rel, targetField: newField.name };
+      }
+      return rel;
+    });
     pushState({
       schema: {
         tables: updatedTables,
@@ -309,24 +256,18 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     if (!fullState) return;
     const updatedTables = fullState.schema.tables.map((t) => {
       if (t.name === tableName) {
-        return {
-          ...t,
-          fields: t.fields.filter((f) => f.name !== fieldName),
-        };
+        return { ...t, fields: t.fields.filter((f) => f.name !== fieldName) };
       }
       return t;
     });
-    // También borramos relaciones que involucren a ese campo
+    // Borramos relaciones que involucren a ese campo
     const updatedRels = fullState.schema.relationships.filter(
       (rel) =>
         !(
-          (rel.sourceTable === tableName &&
-            rel.sourceField === fieldName) ||
-          (rel.targetTable === tableName &&
-            rel.targetField === fieldName)
+          (rel.sourceTable === tableName && rel.sourceField === fieldName) ||
+          (rel.targetTable === tableName && rel.targetField === fieldName)
         )
     );
-    // NOTA: No borramos filas de datos, eso sería manejado sólo en DataDef (más adelante)
     pushState({
       schema: {
         tables: updatedTables,
@@ -344,13 +285,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
         r.sourceTable === rel.sourceTable &&
         r.sourceField === rel.sourceField &&
         r.targetTable === rel.targetTable &&
-        r.targetField === rel.targetField
+        r.targetField === rel.targetField &&
+        r.cardinality === rel.cardinality
     );
     if (exists) return;
-    const newRels = [
-      ...fullState.schema.relationships,
-      rel,
-    ];
+    const newRels = [...fullState.schema.relationships, rel];
     pushState({
       schema: {
         tables: fullState.schema.tables,
@@ -362,9 +301,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
 
   const removeRelationship = (relId: number) => {
     if (!fullState) return;
-    const newRels = fullState.schema.relationships.filter(
-      (_r, idx) => idx !== relId
-    );
+    const newRels = fullState.schema.relationships.filter((_r, idx) => idx !== relId);
     pushState({
       schema: {
         tables: fullState.schema.tables,
@@ -378,42 +315,22 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
 
   const addRow = (tableName: string, row: RowData) => {
     if (!fullState) return;
-    // Asegurarse de que la tabla existe
-    if (
-      !fullState.schema.tables.find((t) => t.name === tableName)
-    )
-      return;
+    if (!fullState.schema.tables.find((t) => t.name === tableName)) return;
     const prevRows = fullState.data[tableName] || [];
     const newRows = [...prevRows, row];
-    const newData: DataDef = {
-      ...fullState.data,
-      [tableName]: newRows,
-    };
-    pushState({
-      schema: fullState.schema,
-      data: newData,
-    });
+    const newData: DataDef = { ...fullState.data, [tableName]: newRows };
+    pushState({ schema: fullState.schema, data: newData });
   };
 
-  const updateRow = (
-    tableName: string,
-    rowIndex: number,
-    newRow: RowData
-  ) => {
+  const updateRow = (tableName: string, rowIndex: number, newRow: RowData) => {
     if (!fullState) return;
     if (!fullState.data[tableName]) return;
     const prevRows = fullState.data[tableName];
     if (rowIndex < 0 || rowIndex >= prevRows.length) return;
     const newRows = [...prevRows];
     newRows[rowIndex] = newRow;
-    const newData: DataDef = {
-      ...fullState.data,
-      [tableName]: newRows,
-    };
-    pushState({
-      schema: fullState.schema,
-      data: newData,
-    });
+    const newData: DataDef = { ...fullState.data, [tableName]: newRows };
+    pushState({ schema: fullState.schema, data: newData });
   };
 
   const removeRow = (tableName: string, rowIndex: number) => {
@@ -421,18 +338,12 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     if (!fullState.data[tableName]) return;
     const prevRows = fullState.data[tableName];
     if (rowIndex < 0 || rowIndex >= prevRows.length) return;
-    const newRows = prevRows.filter((_, idx) => idx !== rowIndex);
-    const newData: DataDef = {
-      ...fullState.data,
-      [tableName]: newRows,
-    };
-    pushState({
-      schema: fullState.schema,
-      data: newData,
-    });
+    const newRows = prevRows.filter((_r, idx) => idx !== rowIndex);
+    const newData: DataDef = { ...fullState.data, [tableName]: newRows };
+    pushState({ schema: fullState.schema, data: newData });
   };
 
-  // ——— Providencia todos los valores y funciones —————————————————————
+  // ——— Proveedor del contexto —————————————————————
 
   const value: SchemaContextValue = {
     fullState,
@@ -451,20 +362,14 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     removeRow,
   };
 
-  return (
-    <SchemaContext.Provider value={value}>
-      {children}
-    </SchemaContext.Provider>
-  );
+  return <SchemaContext.Provider value={value}>{children}</SchemaContext.Provider>;
 };
 
-// Hook para usar más cómodo
+// Hook para usar el contexto de forma más cómoda
 export function useSchema() {
   const ctx = useContext(SchemaContext);
   if (!ctx) {
-    throw new Error(
-      "useSchema debe usarse dentro de <SchemaProvider>"
-    );
+    throw new Error('useSchema debe usarse dentro de <SchemaProvider>');
   }
   return ctx;
 }

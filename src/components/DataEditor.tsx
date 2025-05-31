@@ -1,56 +1,37 @@
 // src/components/DataEditor.tsx
 import React, { useState, useEffect } from "react";
-import {
-  useSchema,
-} from "../contexts/SchemaContext";
-import type { FieldDef, TableDef, RowData } from "../contexts/SchemaContext";
+import { useSchema } from "../contexts/SchemaContext";
+import type { TableDef, FieldDef, RowData } from "../contexts/SchemaContext";
 
 interface Props {
   tableName: string;
 }
 
 const DataEditor: React.FC<Props> = ({ tableName }) => {
-  const {
-    fullState,
-    addRow,
-    updateRow,
-    removeRow,
-  } = useSchema();
-
+  const { fullState, addRow, updateRow, removeRow } = useSchema();
   if (!fullState) return null;
 
-  const table: TableDef | undefined =
-    fullState.schema.tables.find((t) => t.name === tableName);
-
+  const table: TableDef | undefined = fullState.schema.tables.find((t) => t.name === tableName);
   if (!table) {
     return (
       <div>
-        <p className="text-red-600">
-          La tabla “{tableName}” no existe.
-        </p>
+        <p className="text-red-600">La tabla “{tableName}” no existe.</p>
       </div>
     );
   }
 
-  // 1) Estado local para FORMULARIO de “nueva fila” o “edición”
   const [formValues, setFormValues] = useState<RowData>({});
-  const [formErrors, setFormErrors] = useState<string | null>(
-    null
-  );
-  const [editingIndex, setEditingIndex] =
-    useState<number | null>(null);
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // Cada vez que cambiemos de tabla o queramos comenzar de cero:
   useEffect(() => {
     setFormValues({});
     setFormErrors(null);
     setEditingIndex(null);
   }, [tableName]);
 
-  // 2) Handler para cambiar valor en un input de campo
   const handleChange = (field: FieldDef, value: string) => {
     let parsed: any = value;
-    // Si es INT
     if (/INT/i.test(field.type)) {
       const n = parseInt(value, 10);
       parsed = isNaN(n) ? null : n;
@@ -58,107 +39,69 @@ const DataEditor: React.FC<Props> = ({ tableName }) => {
       const f = parseFloat(value);
       parsed = isNaN(f) ? null : f;
     }
-    // Dejo strings tal cual, y para DATE podrías parsear si quieres
-    setFormValues((prev) => ({
-      ...prev,
-      [field.name]: parsed,
-    }));
+    setFormValues((prev) => ({ ...prev, [field.name]: parsed }));
   };
 
-  // 3) Validar la fila completa según los campos
   const validateRow = (): boolean => {
     for (const field of table.fields) {
       const val = formValues[field.name];
       if (field.required) {
-        if (
-          val === undefined ||
-          val === null ||
-          String(val).trim() === ""
-        ) {
-          setFormErrors(
-            `El campo "${field.name}" es requerido.`
-          );
+        if (val === undefined || val === null || String(val).trim() === "") {
+          setFormErrors(`El campo "${field.name}" es requerido.`);
           return false;
         }
       }
-      // Validación básica de tipo (si es INT, debe ser número)
       if (/INT/i.test(field.type)) {
-        if (
-          val !== null &&
-          val !== undefined &&
-          typeof val !== "number"
-        ) {
-          setFormErrors(
-            `El campo "${field.name}" debe ser un entero.`
-          );
+        if (val !== null && val !== undefined && typeof val !== "number") {
+          setFormErrors(`El campo "${field.name}" debe ser un entero.`);
           return false;
         }
       }
       if (/REAL|FLOAT|DOUBLE/i.test(field.type)) {
-        if (
-          val !== null &&
-          val !== undefined &&
-          typeof val !== "number"
-        ) {
-          setFormErrors(
-            `El campo "${field.name}" debe ser un número real.`
-          );
+        if (val !== null && val !== undefined && typeof val !== "number") {
+          setFormErrors(`El campo "${field.name}" debe ser un número real.`);
           return false;
         }
       }
-      // Para VARCHAR, DATE, etc., omitimos validación estricta ahora
     }
     setFormErrors(null);
     return true;
   };
 
-  // 4) Insertar o actualizar fila
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateRow()) return;
     if (editingIndex === null) {
-      // NUEVA fila
       addRow(tableName, formValues);
     } else {
-      // ACTUALIZAR fila existente
       updateRow(tableName, editingIndex, formValues);
     }
-    // Limpiar formulario
     setFormValues({});
     setEditingIndex(null);
   };
 
-  // 5) Iniciar edición de fila
   const startEditRow = (idx: number) => {
     const existing = fullState.data[tableName][idx];
     setFormValues(existing);
     setEditingIndex(idx);
   };
 
-  // 6) Render de la lista de filas
   const rows: RowData[] = fullState.data[tableName] || [];
 
   return (
     <div className="p-4 space-y-4">
-      <h3 className="text-lg font-semibold">
-        Datos de “{tableName}”
-      </h3>
+      <h3 className="text-lg font-semibold">Datos de “{tableName}”</h3>
 
-      {/* —— Listado de filas existentes —— */}
+      {/* Listado de filas */}
       <div className="overflow-x-auto">
         {rows.length === 0 ? (
-          <p className="italic text-gray-500">
-            No hay registros.
-          </p>
+          <p className="italic text-gray-500">No hay registros.</p>
         ) : (
           <table className="min-w-full table-auto border">
             <thead className="bg-gray-100">
               <tr>
                 {table.fields.map((f) => (
-                  <th
-                    key={f.name}
-                    className="px-2 py-1 border text-left text-sm font-medium"
-                  >
+                  <th key={f.name} className="px-2 py-1 border text-left text-sm font-medium">
                     {f.name}
                   </th>
                 ))}
@@ -167,15 +110,9 @@ const DataEditor: React.FC<Props> = ({ tableName }) => {
             </thead>
             <tbody>
               {rows.map((row, idx) => (
-                <tr
-                  key={idx}
-                  className="odd:bg-white even:bg-gray-50"
-                >
+                <tr key={idx} className="odd:bg-white even:bg-gray-50">
                   {table.fields.map((f) => (
-                    <td
-                      key={f.name}
-                      className="px-2 py-1 border text-sm"
-                    >
+                    <td key={f.name} className="px-2 py-1 border text-sm">
                       {row[f.name] ?? "NULL"}
                     </td>
                   ))}
@@ -200,54 +137,29 @@ const DataEditor: React.FC<Props> = ({ tableName }) => {
         )}
       </div>
 
-      {/* —— Formulario para NUEVA fila o EDICIÓN —— */}
+      {/* Formulario de nueva fila o edición */}
       <div className="mt-4">
         <h4 className="font-semibold">
-          {editingIndex === null
-            ? "Agregar nueva fila"
-            : `Editar fila #${editingIndex + 1}`}
+          {editingIndex === null ? "Agregar nueva fila" : `Editar fila #${editingIndex + 1}`}
         </h4>
-        <form
-          className="space-y-2 mt-2"
-          onSubmit={handleSubmit}
-        >
+        <form className="space-y-2 mt-2" onSubmit={handleSubmit}>
           {table.fields.map((f) => (
-            <div
-              key={f.name}
-              className="flex flex-col space-y-1"
-            >
+            <div key={f.name} className="flex flex-col space-y-1">
               <label className="text-sm font-medium">
                 {f.name} ({f.type})
-                {f.required && (
-                  <span className="text-red-500"> *</span>
-                )}
+                {f.required && <span className="text-red-500"> *</span>}
               </label>
               <input
                 type="text"
                 className="border px-2 py-1 rounded"
-                value={
-                  formValues[f.name] !== undefined
-                    ? String(formValues[f.name])
-                    : ""
-                }
-                onChange={(e) =>
-                  handleChange(f, e.target.value)
-                }
+                value={formValues[f.name] !== undefined ? String(formValues[f.name]) : ""}
+                onChange={(e) => handleChange(f, e.target.value)}
               />
             </div>
           ))}
-          {formErrors && (
-            <p className="text-red-600 text-sm">
-              {formErrors}
-            </p>
-          )}
-          <button
-            type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-          >
-            {editingIndex === null
-              ? "Agregar fila"
-              : "Guardar cambios"}
+          {formErrors && <p className="text-red-600 text-sm">{formErrors}</p>}
+          <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+            {editingIndex === null ? "Agregar fila" : "Guardar cambios"}
           </button>
           {editingIndex !== null && (
             <button
