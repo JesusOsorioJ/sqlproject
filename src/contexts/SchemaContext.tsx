@@ -241,31 +241,73 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     pushState({ schema: { tables: fullState.schema.tables, relationships: newRels }, data: fullState.data });
   };
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Reescribimos addRow PARA QUE SE APROVECHE DE UN “functional update” de setFullState:
+  // ─────────────────────────────────────────────────────────────────────────────
   const addRow = (tableName: string, row: RowData) => {
-    if (!fullState) return;
-    if (!fullState.schema.tables.find((t) => t.name === tableName)) return;
-    const prevRows = fullState.data[tableName] || [];
-    const newRows = [...prevRows, row];
-    pushState({ schema: fullState.schema, data: { ...fullState.data, [tableName]: newRows } });
+    setFullState((prev) => {
+      if (!prev) return prev;
+      // Si la tabla no está en el esquema, no hacemos nada
+      if (!prev.schema.tables.find((t) => t.name === tableName)) return prev;
+
+      // Tomamos las filas anteriores de esa tabla (o [] si no existen)
+      const prevRows = prev.data[tableName] || [];
+
+      // Construimos el nuevo array de filas
+      const newRows = [...prevRows, row];
+
+      // Reconstruimos el objeto “data” inmutablemente
+      const newData: DataDef = {
+        ...prev.data,
+        [tableName]: newRows,
+      };
+
+      return {
+        schema: prev.schema,
+        data: newData,
+      };
+    });
   };
 
+  // De manera análoga, actualizamos updateRow y removeRow para que usen también functional update:
   const updateRow = (tableName: string, rowIndex: number, newRow: RowData) => {
-    if (!fullState) return;
-    if (!fullState.data[tableName]) return;
-    const prevRows = fullState.data[tableName];
-    if (rowIndex < 0 || rowIndex >= prevRows.length) return;
-    const newRows = [...prevRows];
-    newRows[rowIndex] = newRow;
-    pushState({ schema: fullState.schema, data: { ...fullState.data, [tableName]: newRows } });
+    setFullState((prev) => {
+      if (!prev) return prev;
+      if (!prev.data[tableName]) return prev;
+      const prevRows = prev.data[tableName];
+      if (rowIndex < 0 || rowIndex >= prevRows.length) return prev;
+
+      const newRowsArray = [...prevRows];
+      newRowsArray[rowIndex] = newRow;
+
+      const newData: DataDef = {
+        ...prev.data,
+        [tableName]: newRowsArray,
+      };
+      return {
+        schema: prev.schema,
+        data: newData,
+      };
+    });
   };
 
   const removeRow = (tableName: string, rowIndex: number) => {
-    if (!fullState) return;
-    if (!fullState.data[tableName]) return;
-    const prevRows = fullState.data[tableName];
-    if (rowIndex < 0 || rowIndex >= prevRows.length) return;
-    const newRows = prevRows.filter((_r, idx) => idx !== rowIndex);
-    pushState({ schema: fullState.schema, data: { ...fullState.data, [tableName]: newRows } });
+    setFullState((prev) => {
+      if (!prev) return prev;
+      if (!prev.data[tableName]) return prev;
+      const prevRows = prev.data[tableName];
+      if (rowIndex < 0 || rowIndex >= prevRows.length) return prev;
+
+      const newRowsArray = prevRows.filter((_r, idx) => idx !== rowIndex);
+      const newData: DataDef = {
+        ...prev.data,
+        [tableName]: newRowsArray,
+      };
+      return {
+        schema: prev.schema,
+        data: newData,
+      };
+    });
   };
 
   const clearAll = () => {

@@ -86,11 +86,52 @@ const DataEditor: React.FC<Props> = ({ tableName }) => {
     setEditingIndex(idx);
   };
 
+  const generateRandomValue = (field: FieldDef): any => {
+    if (/INT/i.test(field.type)) {
+      return Math.floor(Math.random() * 1000);
+    }
+    if (/REAL|FLOAT|DOUBLE/i.test(field.type)) {
+      return parseFloat((Math.random() * 1000).toFixed(2));
+    }
+    if (/TEXT|CHAR|STRING/i.test(field.type)) {
+      const base = field.name.replace(/[^a-zA-Z]/g, "") || "txt";
+      return `${base}_${Math.random().toString(36).substring(7)}`;
+    }
+    if (/DATE/i.test(field.type)) {
+      const d = new Date(Date.now() - Math.floor(Math.random() * 10000000000));
+      return d.toISOString().split("T")[0];
+    }
+    return null;
+  };
+
+  const generateRandomRow = (): RowData => {
+    const newRow: RowData = {};
+    for (const field of table.fields) {
+      newRow[field.name] = generateRandomValue(field);
+    }
+    return newRow;
+  };
+
+  const handleAddRandomRow = () => {
+    const newRow = generateRandomRow();
+    console.log({tableName, newRow})
+    addRow(tableName, newRow);
+  };
+
   const rows: RowData[] = fullState.data[tableName] || [];
 
   return (
     <div className="p-4 space-y-4">
       <h3 className="text-lg font-semibold">Datos de “{tableName}”</h3>
+
+      <div className="flex gap-2">
+        <button
+          onClick={handleAddRandomRow}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Agregar info random
+        </button>
+      </div>
 
       {/* Listado de filas */}
       <div className="overflow-x-auto">
