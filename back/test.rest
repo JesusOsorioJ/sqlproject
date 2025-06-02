@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:4000
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXIiOiJ1c2VybmFtZSJ9LCJpYXQiOjE3NDg4Mzc5MzUsImV4cCI6MTc0ODg0MTUzNX0.Q0LO7ySKDy12CkMgQvefZXhnX2X7bwNc2XOSnWtU7pU
+
+### Consultar IA
+GET {{baseUrl}}
+Authorization: {{token}}
+Content-Type: application/json
+
+
+### Login
+POST {{baseUrl}}/login
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+ "username": "username",
+ "password": "password"
+}
+
+### Consultar IA
+POST {{baseUrl}}/query
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+ "prompt": "Hola IA, como estas?"
+}
+

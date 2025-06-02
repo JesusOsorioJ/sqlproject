@@ -1,0 +1,11 @@
+node_modules# Archivos generados por el compilador
+node_modules/
+*.log
+.DS_Store
+
+# Archivos temporales
+*.tmp
+tmp/
+
+# Archivos de configuración específicos del entorno de desarrollo
+.env
