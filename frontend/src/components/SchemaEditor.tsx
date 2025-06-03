@@ -1,13 +1,15 @@
 // src/components/SchemaEditor.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useSchema, type SchemaDef, type RowData } from "../contexts/SchemaContext";
-import { examples } from "../utils/data";
+import { buildSchemaWithDataPrompt, examples, isValidData, isValidSchema } from "../utils/data";
+import { consultaIA } from "../api/schema";
 
 const SchemaEditor: React.FC = () => {
   const { fullState, setSchema, clearAll, addRow } = useSchema();
   const [text, setText] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [pendingData, setPendingData] = useState<{ [tabla: string]: RowData[] }>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const typingIntervalRef = useRef<number | null>(null);
 
@@ -20,7 +22,7 @@ const SchemaEditor: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!fullState) return; 
+    if (!fullState) return;
     const esquemaTablas = fullState.schema.tables.map((t) => t.name);
     const tablasAAInsertar: string[] = [];
     const nuevoPending = { ...pendingData };
@@ -61,12 +63,12 @@ const SchemaEditor: React.FC = () => {
     }, 10);
   };
 
-  const mockGenerateSchema = async (description: string): Promise<SchemaDef> => {
-    if (description.toLowerCase().includes("e-commerce")) {
-      return Promise.resolve({ tables: [], relationships: [] });
+  function isValidFullResponse(obj: { schema: SchemaDef; data: { [tabla: string]: any[] } }) {
+    if (!isValidSchema(obj)) {
+      return false;
     }
-    return Promise.reject(new Error("Mock IA: descripción no válida."));
-  };
+    return isValidData(obj, obj.schema);
+  }
 
   const handleGenerate = async (overrideText?: string) => {
     const description = overrideText !== undefined ? overrideText : text;
@@ -84,30 +86,55 @@ const SchemaEditor: React.FC = () => {
       }
     }
 
-    try {
-      clearAll();
-      const newSchema = await mockGenerateSchema(description.trim());
-      const ejemploData: { [tabla: string]: RowData[] } = {};
-      newSchema.tables.forEach((t) => {
-        const filaEjemplo: RowData = {};
-        t.fields.forEach((f) => {
-          if (/INT/i.test(f.type)) filaEjemplo[f.name] = 1;
-          else if (/REAL|FLOAT|DOUBLE/i.test(f.type)) filaEjemplo[f.name] = 1.0;
-          else if (/CHAR|VARCHAR|TEXT/i.test(f.type)) filaEjemplo[f.name] = "ejemplo";
-          else if (/DATE/i.test(f.type)) {
-            filaEjemplo[f.name] = new Date().toISOString().split("T")[0];
-          } else {
-            filaEjemplo[f.name] = null;
-          }
-        });
-        ejemploData[t.name] = [filaEjemplo];
-      });
+    clearAll();
+    setIsLoading(true);
 
-      setSchema(newSchema);
-      setPendingData(ejemploData);
-    } catch (e: any) {
-      setError(e.message || "Error generando esquema.");
+    let intentos = 0;
+    let fullResponse: { schema: SchemaDef; data: { [tabla: string]: any[] } } | null = null;
+    let ultimoError: string | null = null;
+
+    const promptFormato = buildSchemaWithDataPrompt(description.trim());
+
+    while (intentos < 5 && fullResponse === null) {
+      intentos++;
+      try {
+        const respuestaTexto = await consultaIA(promptFormato);
+
+        let posibleObj: any;
+        try {
+          posibleObj = JSON.parse(respuestaTexto);
+        } catch (parseErr) {
+          ultimoError = `Intento ${intentos}: JSON inválido (error de parse).`;
+          console.warn(ultimoError);
+          continue;
+        }
+
+        if (isValidFullResponse(posibleObj)) {
+          fullResponse = posibleObj;
+          break;
+        } else {
+          ultimoError = `Intento ${intentos}: La estructura no coincide con el formato requerido.`;
+          console.warn(ultimoError);
+          continue;
+        }
+      } catch (err: any) {
+        ultimoError = `Intento ${intentos}: Error llamando a la IA: ${err.message || err}`;
+        console.error(ultimoError);
+      }
     }
+
+    if (fullResponse) {
+      setSchema(fullResponse.schema);
+      setPendingData(fullResponse.data);
+      setError(null);
+    } else {
+      setError(
+        "Error: no fue posible generar el esquema en el formato requerido tras 5 intentos."
+      );
+      console.error("Último error de validación:", ultimoError);
+    }
+
+    setIsLoading(false);
   };
 
   const handleProbarSuerte = () => {
@@ -126,7 +153,6 @@ const SchemaEditor: React.FC = () => {
       clearAll();
       setSchema(chosen.schema);
       setPendingData(chosen.data);
-
       setError(null);
     });
   };
@@ -138,18 +164,31 @@ const SchemaEditor: React.FC = () => {
         placeholder="Describe tu modelo de negocio…"
         value={text}
         onChange={(e) => setText(e.target.value)}
+        disabled={isLoading}
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      {/* Indicador de loading */}
+      {isLoading && (
+        <p className="text-gray-600 text-sm italic">Pensando… por favor, espera.</p>
+      )}
+
       <div className="flex space-x-2">
         <button
-          className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700"
+          className={`px-4 py-2 rounded text-white ${
+            isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          }`}
           onClick={() => handleGenerate()}
+          disabled={isLoading}
         >
-          Generar esquema
+          {isLoading ? "Pensando…" : "Generar esquema"}
         </button>
         <button
-          className="px-4 py-2 rounded text-white bg-yellow-500 hover:bg-yellow-600"
+          className={`px-4 py-2 rounded text-white ${
+            isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-500 hover:bg-yellow-600"
+          }`}
           onClick={handleProbarSuerte}
+          disabled={isLoading}
         >
           Probar suerte
         </button>
