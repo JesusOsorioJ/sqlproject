@@ -10,7 +10,7 @@ interface TableNodeData {
   onOpenEditor: (tableName: string) => void;
 }
 
-const NODE_WIDTH = 200;
+// const NODE_WIDTH = 200;
 const NODE_HEIGHT = 200;
 
 const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {

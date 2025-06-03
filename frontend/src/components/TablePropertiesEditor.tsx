@@ -164,9 +164,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     setRelCardinality("1:N");
   };
 
-  const otherTables = fullState.schema.tables.filter(
-    (t) => t.name !== tableName
-  );
+  // const otherTables = fullState.schema.tables.filter(
+  //   (t) => t.name !== tableName
+  // );
 
   return (
     <div className="p-4 space-y-4">

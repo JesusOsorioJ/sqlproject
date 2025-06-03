@@ -10,7 +10,7 @@ interface QueryToSQLProps {
 }
 
 const QueryToSQL: React.FC<QueryToSQLProps> = ({ tableName: propTable }) => {
-  const { fullState, clearAll } = useSchema();
+  const { fullState } = useSchema();
 
   const [selectedTable, setSelectedTable] = useState<string>(propTable || "");
   const [text, setText] = useState<string>("");              

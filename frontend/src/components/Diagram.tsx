@@ -1,6 +1,6 @@
 // src/components/Diagram.tsx
 
-import React, { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -8,6 +8,7 @@ import ReactFlow, {
   applyEdgeChanges,
   type Node,
   type Edge,
+  type EdgeChange,
   ConnectionLineType,
 } from "react-flow-renderer";
 import dagre from "dagre";
@@ -114,12 +115,16 @@ export default function Diagram({ className, onTableSelect }: DiagramProps) {
   // --------------------------------------------------------
   // 3) Callbacks para que ReactFlow maneje movimiento de nodos y aristas
   // --------------------------------------------------------
-  const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+  interface NodesChangeHandler {
+    (changes: import("react-flow-renderer").NodeChange[]): void;
+  }
+
+  const onNodesChange: NodesChangeHandler = useCallback(
+    (changes: import("react-flow-renderer").NodeChange[]) => setNodes((nds: Node[]) => applyNodeChanges(changes, nds)),
     []
   );
   const onEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
+    (changes: EdgeChange[]) => setEdges((eds: Edge[]) => applyEdgeChanges(changes, eds)),
     []
   );
 
@@ -146,7 +151,7 @@ export default function Diagram({ className, onTableSelect }: DiagramProps) {
           connectionLineType={ConnectionLineType.SmoothStep}
           nodesDraggable={true}
           nodesConnectable={true}
-          deleteKeyCode={46}
+          deleteKeyCode={'46'}
           nodeTypes={nodeTypes}
         >
           <Background color="#eee" gap={12} />
