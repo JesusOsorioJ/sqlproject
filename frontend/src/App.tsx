@@ -16,16 +16,22 @@ const App: React.FC = () => {
   const [selectedModule, setSelectedModule] = useState<ModuleKey>('schema');
   // 2) Tabla actualmente seleccionada para “schema” y para “data-query”
   const [selectedTable, setSelectedTable] = useState<string>('');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <SchemaProvider>
       <div className="flex h-screen overflow-hidden w-screen text-gray-900">
         {/* Sidebar */}
-        <Sidebar selected={selectedModule} onSelect={setSelectedModule} />
+        <Sidebar
+          selected={selectedModule}
+          onSelect={setSelectedModule}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
 
         {/* Contenido principal */}
-        <main className="flex-1 ml-64 overflow-auto bg-gray-50 p-6">
-          
+        <main className={`flex-1 ml-64 duration-500 ${isCollapsed ? "ml-[80px]" : " ml-[300px]"} overflow-auto bg-gray-50 p-6`}>
+
           {/* ——— Módulo 1: Crear & Gestionar Tablas ——— */}
           {selectedModule === 'schema' && (
             <div className="space-y-6">
@@ -41,27 +47,36 @@ const App: React.FC = () => {
               </div>
 
               {/* 1b) Diagrama + Propiedades */}
-              <div className="flex gap-6">
-                {/* Diagrama */}
-                <div className="flex-1 bg-white rounded-lg shadow p-4">
-                  <Diagram onTableSelect={setSelectedTable} />
-                </div>
-                {/* Panel de Propiedades */}
-                <div className="flex-1 space-y-4">
-                  {selectedTable ? (
+              {selectedTable ? (
+                /* ——— Caso: Hay tabla seleccionada ——— */
+                <div className="flex gap-6">
+                  {/* Diagrama ocupa la mitad (flex-1) */}
+                  <div className="flex-1 bg-white rounded-lg shadow p-4">
+                    <Diagram onTableSelect={setSelectedTable} />
+                  </div>
+                  {/* Panel de propiedades ocupa la otra mitad */}
+                  <div className="flex-1">
                     <div className="bg-white p-4 rounded shadow">
-                      <h3 className="text-xl font-semibold mb-2">
-                        Propiedades de “{selectedTable}”
-                      </h3>
+                      <div className="flex justify-between">
+                        <h3 className="text-xl font-semibold mb-2">
+                          Propiedades de “{selectedTable}”
+                        </h3>
+                        <button
+                          className="px-4 py-2 rounded text-white cursor-not-allowed"
+                          onClick={() => setSelectedTable("")}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
                       <TablePropertiesEditor tableName={selectedTable} />
                     </div>
-                  ) : (
-                    <div className="italic text-gray-500">
-                      Haz clic en “Ver detalles” &rarr; “Editar” en un nodo para ver sus propiedades.
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="w-full bg-white rounded-lg shadow p-4">
+                  <Diagram onTableSelect={setSelectedTable} />
+                </div>
+              )}
             </div>
           )}
 
@@ -83,7 +98,7 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 2.1 DataEditor */}
                 <div className="bg-white p-4 rounded shadow">
-                  <h3 className="text-xl font-semibold mb-2">Registros de “{selectedTable || '...' }”</h3>
+                  <h3 className="text-xl font-semibold mb-2">Registros de “{selectedTable || '...'}”</h3>
                   {selectedTable ? (
                     <DataEditor tableName={selectedTable} />
                   ) : (
@@ -95,7 +110,7 @@ const App: React.FC = () => {
 
                 {/* 2.2 QueryToSQL (pasa selectedTable como prop para ocultar su selector interno) */}
                 <div className="bg-white p-4 rounded shadow">
-                  <h3 className="text-xl font-semibold mb-2">Consultas sobre “{selectedTable || '...' }”</h3>
+                  <h3 className="text-xl font-semibold mb-2">Consultas sobre “{selectedTable || '...'}”</h3>
                   {selectedTable ? (
                     <QueryToSQL tableName={selectedTable} />
                   ) : (

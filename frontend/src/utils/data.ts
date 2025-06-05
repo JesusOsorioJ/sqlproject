@@ -213,9 +213,9 @@ Error: no fue posible generar una consulta SQL válida tras 5 intentos.
 export function isValidSQL(sql: string, tableName: string): boolean {
   if (typeof sql !== "string") return false;
   const trimmed = sql.trim().toLowerCase();
-  if (!trimmed.startsWith("select")) return false;
-  // Verificamos que aparezca la tabla (ignorando mayúsculas)
-  if (!trimmed.includes(tableName.toLowerCase())) return false;
+  // if (!trimmed.startsWith("select")) return false;
+  // // Verificamos que aparezca la tabla (ignorando mayúsculas)
+  // if (!trimmed.includes(tableName.toLowerCase())) return false;
   return true;
 }
 

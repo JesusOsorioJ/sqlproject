@@ -138,25 +138,28 @@ export default function Diagram({ className, onTableSelect }: DiagramProps) {
       ) : fullState.schema.tables.length === 0 ? (
         <p>No hay tablas en el esquema.</p>
       ) : (
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          fitView
-          panOnScroll
-          zoomOnScroll
-          zoomOnPinch
-          panOnDrag
-          connectionLineType={ConnectionLineType.SmoothStep}
-          nodesDraggable={true}
-          nodesConnectable={true}
-          deleteKeyCode={'46'}
-          nodeTypes={nodeTypes}
-        >
-          <Background color="#eee" gap={12} />
-          <Controls />
-        </ReactFlow>
+        <>
+          <p>Haz clic en &rarr; “Editar” en un nodo para ver sus propiedades.</p>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            fitView
+            panOnScroll
+            zoomOnScroll
+            zoomOnPinch
+            panOnDrag
+            connectionLineType={ConnectionLineType.SmoothStep}
+            nodesDraggable={true}
+            nodesConnectable={true}
+            deleteKeyCode={'46'}
+            nodeTypes={nodeTypes}
+          >
+            <Background color="#eee" gap={12} />
+            <Controls />
+          </ReactFlow>
+        </>
       )}
     </div>
   );

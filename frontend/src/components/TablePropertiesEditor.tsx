@@ -18,13 +18,32 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     removeRelationship,
   } = useSchema();
 
+  // ————— Hooks en orden, sin condicionales tempranos —————
   const [localTableName, setLocalTableName] = useState<string>(tableName);
   const [renameError, setRenameError] = useState<string | null>(null);
 
+  // Hooks para campos
+  const [newFieldName, setNewFieldName] = useState<string>("");
+  const [newFieldType, setNewFieldType] = useState<string>("VARCHAR(100)");
+  const [newFieldRequired, setNewFieldRequired] = useState<boolean>(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+
+  const [editingFieldIdx, setEditingFieldIdx] = useState<number | null>(null);
+  const [editFieldName, setEditFieldName] = useState<string>("");
+
+  // Hooks para relaciones
+  const [relSourceField, setRelSourceField] = useState<string>("");
+  const [relTargetTable, setRelTargetTable] = useState<string>("");
+  const [relTargetField, setRelTargetField] = useState<string>("");
+  const [relCardinality, setRelCardinality] = useState<"1:1" | "1:N" | "N:1" | "N:M">("1:N");
+  const [relError, setRelError] = useState<string | null>(null);
+
+  // useEffect para sincronizar tableName con el estado local
   useEffect(() => {
     setLocalTableName(tableName);
   }, [tableName]);
 
+  // ————— Condiciones de guardia después de los hooks —————
   if (!fullState) return null;
 
   const table: TableDef | undefined = fullState.schema.tables.find(
@@ -38,7 +57,8 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     );
   }
 
-  // —— Renombrar tabla —————————————————————
+  // ———— Manejadores de eventos ————
+  // Renombrar tabla
   const handleRename = () => {
     setRenameError(null);
     const newName = localTableName.trim();
@@ -54,7 +74,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     renameTable(tableName, newName);
   };
 
-  // —— Eliminar tabla —————————————————————
+  // Eliminar tabla
   const handleDeleteTable = () => {
     if (
       window.confirm(`¿Seguro que deseas eliminar la tabla “${tableName}”?`)
@@ -63,12 +83,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     }
   };
 
-  // —— Campos (fields) —————————————————————
-  const [newFieldName, setNewFieldName] = useState<string>("");
-  const [newFieldType, setNewFieldType] = useState<string>("VARCHAR(100)");
-  const [newFieldRequired, setNewFieldRequired] = useState<boolean>(false);
-  const [fieldError, setFieldError] = useState<string | null>(null);
-
+  // Agregar nuevo campo
   const handleAddField = () => {
     setFieldError(null);
     const name = newFieldName.trim();
@@ -86,9 +101,6 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     setNewFieldType("VARCHAR(100)");
   };
 
-  const [editingFieldIdx, setEditingFieldIdx] = useState<number | null>(null);
-  const [editFieldName, setEditFieldName] = useState<string>("");
-
   const startEditingField = (idx: number, f: FieldDef) => {
     setEditingFieldIdx(idx);
     setEditFieldName(f.name);
@@ -102,8 +114,9 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     if (
       newNameTrim !== oldName &&
       table.fields.find((f) => f.name === newNameTrim)
-    )
+    ) {
       return;
+    }
     updateField(tableName, oldName, {
       ...table.fields[idx],
       name: newNameTrim,
@@ -112,15 +125,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     setEditFieldName("");
   };
 
-  // —— Relaciones —————————————————————
-  const [relSourceField, setRelSourceField] = useState<string>("");
-  const [relTargetTable, setRelTargetTable] = useState<string>("");
-  const [relTargetField, setRelTargetField] = useState<string>("");
-  const [relCardinality, setRelCardinality] = useState<
-    "1:1" | "1:N" | "N:1" | "N:M"
-  >("1:N");
-  const [relError, setRelError] = useState<string | null>(null);
-
+  // Agregar nueva relación
   const handleAddRelationship = () => {
     setRelError(null);
     if (!relSourceField) {
@@ -164,10 +169,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
     setRelCardinality("1:N");
   };
 
-  // const otherTables = fullState.schema.tables.filter(
-  //   (t) => t.name !== tableName
-  // );
-
+  // ———— Renderizado del componente ————
   return (
     <div className="p-4 space-y-4">
       {/* —— 1: Renombrar / Eliminar Tabla —— */}
@@ -429,9 +431,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
               className="w-full border px-2 py-1 rounded"
               value={relCardinality}
               onChange={(e) =>
-                setRelCardinality(
-                  e.target.value as "1:1" | "1:N" | "N:1" | "N:M"
-                )
+                setRelCardinality(e.target.value as "1:1" | "1:N" | "N:1" | "N:M")
               }
             >
               <option value="1:1">1 : 1</option>
