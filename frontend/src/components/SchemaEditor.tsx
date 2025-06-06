@@ -5,8 +5,7 @@ import { buildSchemaWithDataPrompt, examples, isValidData, isValidSchema } from 
 import { consultaIA } from "../api/schema";
 
 const SchemaEditor: React.FC = () => {
-  const { fullState, setSchema, clearAll, addRow } = useSchema();
-  const [text, setText] = useState<string>("");
+  const { fullState, setSchema, clearAll, addRow, setUserText } = useSchema();
   const [error, setError] = useState<string | null>(null);
   const [pendingData, setPendingData] = useState<{ [tabla: string]: RowData[] }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -45,13 +44,15 @@ const SchemaEditor: React.FC = () => {
   }, [fullState?.schema, pendingData, addRow]);
 
   const typeParagraph = (paragraph: string, callback?: () => void) => {
-    setText("");
+    setUserText("");
+    let texInput = "";
     let i = 0;
     if (typingIntervalRef.current) {
       window.clearInterval(typingIntervalRef.current);
     }
     typingIntervalRef.current = window.setInterval(() => {
-      setText((prev) => prev + paragraph[i]);
+      texInput += paragraph[i];
+      setUserText(texInput);
       i++;
       if (i === paragraph.length) {
         if (typingIntervalRef.current) {
@@ -71,7 +72,10 @@ const SchemaEditor: React.FC = () => {
   }
 
   const handleGenerate = async (overrideText?: string) => {
-    const description = overrideText !== undefined ? overrideText : text;
+    const description = overrideText !== undefined
+        ? overrideText
+        : fullState?.userText?.trim() ?? "";
+
     setError(null);
 
     if (!description.trim()) {
@@ -154,6 +158,7 @@ const SchemaEditor: React.FC = () => {
       setSchema(chosen.schema);
       setPendingData(chosen.data);
       setError(null);
+      setUserText(chosen.paragraph);
     });
   };
 
@@ -162,8 +167,8 @@ const SchemaEditor: React.FC = () => {
       <textarea
         className="w-full h-24 p-2 border rounded focus:outline-none focus:ring"
         placeholder="Describe tu modelo de negocio…"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+        value={fullState?.userText ?? ""}
+        onChange={(e) => setUserText(e.target.value)}
         disabled={isLoading}
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -190,7 +195,7 @@ const SchemaEditor: React.FC = () => {
           onClick={handleProbarSuerte}
           disabled={isLoading}
         >
-          {isLoading ? "Cargando": "Probar suerte"}
+          {isLoading ? "Cargando" : "Probar suerte"}
         </button>
       </div>
     </div>

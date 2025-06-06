@@ -42,6 +42,7 @@ export type DataDef = {
 export interface FullState {
   schema: SchemaDef;
   data: DataDef;
+  userText: string;
 }
 
 export interface SchemaContextValue {
@@ -49,6 +50,7 @@ export interface SchemaContextValue {
   loading: boolean;
 
   setSchema: (newSchema: SchemaDef) => void;
+  setUserText: (text: string) => void;
   addTable: (tableName: string) => void;
   removeTable: (tableName: string) => void;
   renameTable: (oldName: string, newName: string) => void;
@@ -79,19 +81,26 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const json = window.localStorage.getItem(LS_KEY);
     if (json) {
       try {
-        const parsed: FullState = JSON.parse(json);
-        setFullState(parsed);
+        const parsed = JSON.parse(json);
+        const initial: FullState = {
+          schema: parsed.schema ?? { tables: [], relationships: [] },
+          data: parsed.data ?? {},
+          userText: parsed.userText ?? '',
+        };
+        setFullState(initial);
       } catch (e) {
         console.warn('No se pudo parsear localStorage:', e);
         setFullState({
           schema: { tables: [], relationships: [] },
           data: {},
+          userText: '',
         });
       }
     } else {
       setFullState({
         schema: { tables: [], relationships: [] },
         data: {},
+        userText: '',
       });
     }
     setLoading(false);
@@ -118,7 +127,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (fullState.data[t.name]) newData[t.name] = fullState.data[t.name];
       else newData[t.name] = [];
     });
-    pushState({ schema: { ...newSchema }, data: newData });
+    pushState({
+      schema: { ...newSchema },
+      data: newData,
+      userText: fullState.userText,
+    });
   };
 
   const addTable = (tableName: string) => {
@@ -130,7 +143,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       tables: [...fullState.schema.tables, newTable],
     };
     const updatedData: DataDef = { ...fullState.data, [tableName]: [] };
-    pushState({ schema: updatedSchema, data: updatedData });
+    pushState({
+      schema: updatedSchema,
+      data: updatedData,
+      userText: fullState.userText,
+    });
   };
 
   const removeTable = (tableName: string) => {
@@ -141,7 +158,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     );
     const updatedSchema: SchemaDef = { tables: filteredTables, relationships: filteredRels };
     const { [tableName]: __, ...restData } = fullState.data;
-    pushState({ schema: updatedSchema, data: restData });
+    pushState({
+      schema: updatedSchema,
+      data: restData,
+      userText: fullState.userText,
+    });
   };
 
   const renameTable = (oldName: string, newName: string) => {
@@ -161,7 +182,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       newData[newName] = fullState.data[oldName];
       delete newData[oldName];
     }
-    pushState({ schema: { tables: updatedTables, relationships: updatedRels }, data: newData });
+    pushState({
+      schema: { tables: updatedTables, relationships: updatedRels },
+      data: newData,
+      userText: fullState.userText,
+    });
   };
 
   const addField = (tableName: string, field: FieldDef) => {
@@ -173,7 +198,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
       return t;
     });
-    pushState({ schema: { ...fullState.schema, tables: updatedTables }, data: fullState.data });
+    pushState({
+      schema: { ...fullState.schema, tables: updatedTables },
+      data: fullState.data,
+      userText: fullState.userText,
+    });
   };
 
   const updateField = (tableName: string, oldFieldName: string, newField: FieldDef) => {
@@ -194,7 +223,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
       return rel;
     });
-    pushState({ schema: { tables: updatedTables, relationships: updatedRels }, data: fullState.data });
+    pushState({
+      schema: { tables: updatedTables, relationships: updatedRels },
+      data: fullState.data,
+      userText: fullState.userText,
+    });
   };
 
   const removeField = (tableName: string, fieldName: string) => {
@@ -212,7 +245,11 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           (rel.targetTable === tableName && rel.targetField === fieldName)
         )
     );
-    pushState({ schema: { tables: updatedTables, relationships: updatedRels }, data: fullState.data });
+    pushState({
+      schema: { tables: updatedTables, relationships: updatedRels },
+      data: fullState.data,
+      userText: fullState.userText,
+    });
   };
 
   const addRelationship = (rel: Relationship) => {
@@ -232,13 +269,18 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         relationships: [...fullState.schema.relationships, rel],
       },
       data: fullState.data,
+      userText: fullState.userText,
     });
   };
 
   const removeRelationship = (relId: number) => {
     if (!fullState) return;
     const newRels = fullState.schema.relationships.filter((_r, idx) => idx !== relId);
-    pushState({ schema: { tables: fullState.schema.tables, relationships: newRels }, data: fullState.data });
+    pushState({
+      schema: { tables: fullState.schema.tables, relationships: newRels },
+      data: fullState.data,
+      userText: fullState.userText,
+    });
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -265,6 +307,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return {
         schema: prev.schema,
         data: newData,
+        userText: prev.userText, // ← conservo el texto del usuario
       };
     });
   };
@@ -287,6 +330,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return {
         schema: prev.schema,
         data: newData,
+        userText: prev.userText,
       };
     });
   };
@@ -306,12 +350,26 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return {
         schema: prev.schema,
         data: newData,
+        userText: prev.userText,
       };
     });
   };
 
+  const setUserText = (text: string) => {
+    if (!fullState) return;
+    pushState({
+      schema: fullState.schema,
+      data: fullState.data,
+      userText: text,
+    });
+  };
+
   const clearAll = () => {
-    const initialState: FullState = { schema: { tables: [], relationships: [] }, data: {} };
+    const initialState: FullState = {
+      schema: { tables: [], relationships: [] },
+      data: {},
+      userText: '',
+    };
     pushState(initialState);
     window.localStorage.removeItem(LS_KEY);
   };
@@ -332,6 +390,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     updateRow,
     removeRow,
     clearAll,
+    setUserText
   };
 
   return <SchemaContext.Provider value={value}>{children}</SchemaContext.Provider>;
