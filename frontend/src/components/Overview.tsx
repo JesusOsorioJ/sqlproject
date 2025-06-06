@@ -16,7 +16,7 @@ const Overview: React.FC = () => {
       <h2 className="text-2xl font-bold">3. Organización & Registros</h2>
 
       {/* Esquema (tablas y campos) */}
-      <div className="bg-white p-4 rounded shadow space-y-4">
+      <div className="bg-gray-800 p-4 rounded-lg shadow space-y-4">
         <h3 className="text-lg font-semibold">Esquema actual</h3>
         {schema.tables.length === 0 ? (
           <p className="italic text-gray-500">No hay tablas definidas.</p>
@@ -44,10 +44,10 @@ const Overview: React.FC = () => {
       </div>
 
       {/* Relaciones */}
-      <div className="bg-white p-4 rounded shadow space-y-2">
+      <div className="bg-gray-800 p-4 rounded-lg shadow space-y-2">
         <h3 className="text-lg font-semibold">Relaciones definidas</h3>
         {schema.relationships.length === 0 ? (
-          <p className="italic text-gray-500">No hay relaciones definidas.</p>
+          <p className="italic text-gray-400">No hay relaciones definidas.</p>
         ) : (
           <ul className="list-disc ml-4 text-sm">
             {schema.relationships.map((rel, idx) => (
@@ -61,7 +61,7 @@ const Overview: React.FC = () => {
       </div>
 
       {/* Datos (registros) */}
-      <div className="bg-white p-4 rounded shadow space-y-4">
+      <div className="bg-gray-800 p-4 rounded-lg shadow space-y-4">
         <h3 className="text-lg font-semibold">Registros almacenados</h3>
         {Object.keys(data).length === 0 ? (
           <p className="italic text-gray-500">No hay datos almacenados.</p>
@@ -75,7 +75,7 @@ const Overview: React.FC = () => {
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full table-auto border">
-                      <thead className="bg-gray-100">
+                      <thead className="bg-gray-900">
                         <tr>
                           {schema.tables
                             .find((t) => t.name === tableName)!
@@ -93,7 +93,7 @@ const Overview: React.FC = () => {
                         {rows.map((row, idx) => (
                           <tr
                             key={idx}
-                            className="odd:bg-white even:bg-gray-50"
+                            className="odd:bg-gray-700 even:bg-gray-700"
                           >
                             {schema
                               .tables.find((t) => t.name === tableName)!
@@ -120,7 +120,7 @@ const Overview: React.FC = () => {
       {/* Botón “Eliminar toda la información” */}
       <div className="pt-4 border-t border-gray-200">
         <button
-          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          className="px-4 py-2 bg-red-800 text-white rounded-lg hover:bg-red-500"
           onClick={() => {
             if (
               window.confirm(

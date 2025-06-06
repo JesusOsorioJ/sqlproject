@@ -213,7 +213,7 @@ const QueryToSQL: React.FC<QueryToSQLProps> = ({ tableName: propTable }) => {
       </button>
 
       {loading && (
-        <p className="text-gray-600 text-sm italic">Pensando… por favor espera.</p>
+        <p className="text-gray-200 text-sm italic">Pensando… por favor espera.</p>
       )}
 
       {/* Si hay SQL generado, lo mostramos en un textarea editable */}
@@ -244,7 +244,7 @@ const QueryToSQL: React.FC<QueryToSQLProps> = ({ tableName: propTable }) => {
       {queryResult && (
         <div className="mt-4">
           <h4 className="font-medium">Resultado sobre datos locales:</h4>
-          <pre className="bg-gray-50 p-2 rounded overflow-auto text-sm">
+          <pre className="bg-gray-900 p-2 rounded-lg overflow-auto text-sm">
             {JSON.stringify(queryResult, null, 2)}
           </pre>
         </div>

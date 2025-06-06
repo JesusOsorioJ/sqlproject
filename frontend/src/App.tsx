@@ -20,7 +20,7 @@ const App: React.FC = () => {
 
   return (
     <SchemaProvider>
-      <div className="flex h-screen overflow-hidden w-screen text-gray-900">
+      <div className="flex h-screen overflow-hidden w-screen text-gray-100 ">
         {/* Sidebar */}
         <Sidebar
           selected={selectedModule}
@@ -30,7 +30,7 @@ const App: React.FC = () => {
         />
 
         {/* Contenido principal */}
-        <main className={`flex-1 ml-64 duration-500 ${isCollapsed ? "ml-[80px]" : " ml-[300px]"} overflow-auto bg-gray-50 p-6`}>
+        <main className={`flex-1 ml-64 duration-500 ${isCollapsed ? "ml-[80px]" : " ml-[300px]"} overflow-auto bg-gray-900 p-6`}>
 
           {/* ——— Módulo 1: Crear & Gestionar Tablas ——— */}
           {selectedModule === 'schema' && (
@@ -38,7 +38,7 @@ const App: React.FC = () => {
               <h2 className="text-2xl font-bold">1. Crear & Gestionar Tablas</h2>
 
               {/* 1a) Editor de Esquema (texto + IA + tabla manual) */}
-              <div className="bg-white p-4 rounded shadow space-y-4">
+              <div className="bg-gray-800 p-4 rounded-lg shadow space-y-4">
                 <SchemaEditor />
                 <div className="pt-4 border-t">
                   <h3 className="text-lg font-semibold mb-2">Agregar tabla manualmente</h3>
@@ -51,18 +51,18 @@ const App: React.FC = () => {
                 /* ——— Caso: Hay tabla seleccionada ——— */
                 <div className="flex gap-6">
                   {/* Diagrama ocupa la mitad (flex-1) */}
-                  <div className="flex-1 bg-white rounded-lg shadow p-4">
+                  <div className="flex-1 bg-gray-800 rounded-lg shadow p-4">
                     <Diagram onTableSelect={setSelectedTable} />
                   </div>
                   {/* Panel de propiedades ocupa la otra mitad */}
                   <div className="flex-1">
-                    <div className="bg-white p-4 rounded shadow">
+                    <div className="bg-gray-800 p-4 rounded-lg shadow">
                       <div className="flex justify-between">
                         <h3 className="text-xl font-semibold mb-2">
                           Propiedades de “{selectedTable}”
                         </h3>
                         <button
-                          className="px-4 py-2 rounded text-white cursor-not-allowed"
+                          className="px-4 py-2 rounded-lg text-white cursor-not-allowed"
                           onClick={() => setSelectedTable("")}
                         >
                           Cerrar
@@ -73,7 +73,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="w-full bg-white rounded-lg shadow p-4">
+                <div className="w-full bg-gray-800 rounded-lg shadow p-4">
                   <Diagram onTableSelect={setSelectedTable} />
                 </div>
               )}
@@ -86,7 +86,7 @@ const App: React.FC = () => {
               <h2 className="text-2xl font-bold">2. Registros & Consultas</h2>
 
               {/* Selector de tabla compartido */}
-              <div className="bg-white p-4 rounded shadow">
+              <div className="bg-gray-800 p-4 rounded-lg shadow">
                 <label className="block text-sm font-medium mb-1">Seleccionar tabla</label>
                 <TableDropdown
                   selectedTable={selectedTable}
@@ -97,7 +97,7 @@ const App: React.FC = () => {
               {/* Panel dividido: DataEditor (registros) a la izquierda y QueryToSQL (consultas) a la derecha */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 2.1 DataEditor */}
-                <div className="bg-white p-4 rounded shadow">
+                <div className="bg-gray-800 p-4 rounded-lg shadow">
                   <h3 className="text-xl font-semibold mb-2">Registros de “{selectedTable || '...'}”</h3>
                   {selectedTable ? (
                     <DataEditor tableName={selectedTable} />
@@ -109,7 +109,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* 2.2 QueryToSQL (pasa selectedTable como prop para ocultar su selector interno) */}
-                <div className="bg-white p-4 rounded shadow">
+                <div className="bg-gray-800 p-4 rounded-lg shadow">
                   <h3 className="text-xl font-semibold mb-2">Consultas sobre “{selectedTable || '...'}”</h3>
                   {selectedTable ? (
                     <QueryToSQL tableName={selectedTable} />
@@ -151,7 +151,7 @@ const TableDropdown: React.FC<TableDropdownProps> = ({ selectedTable, onChange }
 
   return (
     <select
-      className="w-full border px-2 py-1 rounded"
+      className="w-full border px-2 py-1 rounded-lg"
       value={selectedTable}
       onChange={(e) => onChange(e.target.value)}
     >

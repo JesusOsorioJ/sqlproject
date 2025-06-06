@@ -133,34 +133,34 @@ export default function Diagram({ className, onTableSelect }: DiagramProps) {
   // --------------------------------------------------------
   return (
     <div className={className} style={{ width: "100%", height: "700px" }}>
-      {loading || !fullState ? (
+    {loading || !fullState ? (
         <p>Cargando esquema…</p>
-      ) : fullState.schema.tables.length === 0 ? (
+    ) : fullState.schema.tables.length === 0 ? (
         <p>No hay tablas en el esquema.</p>
-      ) : (
-        <>
-          <p>Haz clic en &rarr; “Editar” en un nodo para ver sus propiedades.</p>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            fitView
-            panOnScroll
-            zoomOnScroll
-            zoomOnPinch
-            panOnDrag
-            connectionLineType={ConnectionLineType.SmoothStep}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            deleteKeyCode={'46'}
-            nodeTypes={nodeTypes}
-          >
-            <Background color="#eee" gap={12} />
-            <Controls />
-          </ReactFlow>
-        </>
-      )}
-    </div>
+    ) : (
+      <>
+        <p className="m-2 text-sm text-gray-300">Haz clic en → “Editar” en un nodo para ver sus propiedades.</p>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          fitView
+          panOnScroll
+          zoomOnScroll
+          zoomOnPinch
+          panOnDrag
+          connectionLineType={ConnectionLineType.SmoothStep}
+          nodesDraggable={true}
+          nodesConnectable={true}
+          deleteKeyCode={'46'}
+          nodeTypes={nodeTypes}
+        >
+          <Background color="#757575" gap={12} />
+          <Controls />
+        </ReactFlow>
+      </>
+    )}
+  </div>
   );
 }

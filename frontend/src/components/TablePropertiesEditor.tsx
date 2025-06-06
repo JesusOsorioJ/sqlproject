@@ -182,7 +182,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
             onChange={(e) => setLocalTableName(e.target.value)}
           />
           <button
-            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-3 py-1 bg-cyan-700 text-white rounded hover:bg-cyan-600"
             onClick={handleRename}
           >
             Renombrar
@@ -238,7 +238,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
                 </div>
                 <div className="space-x-1">
                   <button
-                    className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    className="px-2 py-1 bg-cyan-700 text-white rounded hover:bg-cyan-600"
                     onClick={() => startEditingField(idx, f)}
                   >
                     Editar
@@ -286,7 +286,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
               </label>
             </div>
             <button
-              className="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              className="px-4 py-1 bg-cyan-700 text-white rounded hover:bg-cyan-600"
               onClick={handleAddField}
             >
               + Campo
@@ -441,7 +441,7 @@ const TablePropertiesEditor: React.FC<Props> = ({ tableName }) => {
             </select>
 
             <button
-              className="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              className="px-4 py-1 bg-cyan-700 text-white rounded hover:bg-cyan-600"
               onClick={handleAddRelationship}
             >
               + Relación

@@ -21,22 +21,22 @@ const Sidebar: React.FC<SidebarProps> = ({ selected, onSelect, isCollapsed, setI
 
   return (
     <nav
-      className={`fixed top-0 left-0 bottom-0 bg-gray-800 text-white flex flex-col overflow-hidden transition-all 
+      className={`fixed top-0 left-0 bottom-0 bg-gray-950 text-white flex flex-col overflow-hidden transition-all 
         duration-500 ease-in-out ${isCollapsed ? "w-[80px]" : "w-[300px]"}`}
       style={{ zIndex: 50 }}
     >
       {/* Header con botón para colapsar/expandir */}
       <div className="px-2 py-4 flex justify-center items-center border-b border-gray-700 w-full">
-        {!isCollapsed && <h1 className="pr-20 text-xl font-bold">SQL</h1>}
+        {!isCollapsed && <h1 className="pr-20 text-4xl font-bold">SQL</h1>}
         <button
           onClick={toggleCollapse}
-          className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-white"
+          className="p-2 rounded bg-gray-900 hover:bg-gray-700 text-white"
           title={isCollapsed ? 'Expandir' : 'Colapsar'}
         >
           {isCollapsed ? (
-            <span className="">{`>>`}</span>
+            <span>{`>>`}</span>
           ) : (
-            <span className="material-icons">{`<<`}</span>
+            <span>{`<<`}</span>
           )}
         </button>
       </div>
@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selected, onSelect, isCollapsed, setI
       <ul className="flex-1 px-2 py-4 space-y-1 text-center">
         <li>
           <button
-            className={`w-full text-left px-3 py-2 rounded-md flex items-center space-x-2 ${selected === 'schema' ? 'bg-gray-700 font-semibold' : 'hover:bg-gray-700'
+            className={`w-full text-left px-3 py-2 rounded-md flex items-center ${selected === 'schema' ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'
               }`}
             onClick={() => onSelect('schema')}
           >
@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selected, onSelect, isCollapsed, setI
         </li>
         <li>
           <button
-            className={`w-full text-left px-3 py-2 rounded-md flex items-center space-x-2 ${selected === 'data-query' ? 'bg-gray-700 font-semibold' : 'hover:bg-gray-700'
+            className={`w-full text-left px-3 py-2 rounded-md flex items-center ${selected === 'data-query' ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'
               }`}
             onClick={() => onSelect('data-query')}
           >
@@ -63,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selected, onSelect, isCollapsed, setI
         </li>
         <li>
           <button
-            className={`w-full text-left px-3 py-2 rounded-md flex items-center space-x-2 ${selected === 'overview' ? 'bg-gray-700 font-semibold' : 'hover:bg-gray-700'
+            className={`w-full text-left px-3 py-2 rounded-md flex items-center  ${selected === 'overview' ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-700'
               }`}
             onClick={() => onSelect('overview')}
           >

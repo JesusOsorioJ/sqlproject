@@ -139,7 +139,7 @@ const DataEditor: React.FC<Props> = ({ tableName }) => {
           <p className="italic text-gray-500">No hay registros.</p>
         ) : (
           <table className="min-w-full table-auto border">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-900">
               <tr>
                 {table.fields.map((f) => (
                   <th key={f.name} className="px-2 py-1 border text-left text-sm font-medium">
@@ -151,7 +151,7 @@ const DataEditor: React.FC<Props> = ({ tableName }) => {
             </thead>
             <tbody>
               {rows.map((row, idx) => (
-                <tr key={idx} className="odd:bg-white even:bg-gray-50">
+                <tr key={idx} className="odd:bg-gray-700 even:bg-gray-700">
                   {table.fields.map((f) => (
                     <td key={f.name} className="px-2 py-1 border text-sm">
                       {row[f.name] ?? "NULL"}

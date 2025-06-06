@@ -176,7 +176,7 @@ const SchemaEditor: React.FC = () => {
       <div className="flex space-x-2">
         <button
           className={`px-4 py-2 rounded text-white ${
-            isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
           }`}
           onClick={() => handleGenerate()}
           disabled={isLoading}
@@ -185,12 +185,12 @@ const SchemaEditor: React.FC = () => {
         </button>
         <button
           className={`px-4 py-2 rounded text-white ${
-            isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-500 hover:bg-yellow-600"
+            isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-cyan-700 hover:bg-cyan-600"
           }`}
           onClick={handleProbarSuerte}
           disabled={isLoading}
         >
-          Probar suerte
+          {isLoading ? "Cargando": "Probar suerte"}
         </button>
       </div>
     </div>

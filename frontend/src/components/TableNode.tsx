@@ -22,7 +22,7 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
 
   return (
     <div
-      className="border rounded-lg bg-white shadow-md"
+      className="border rounded-lg bg-gray-800 shadow-md"
       style={{
         // width: NODE_WIDTH,
         // height: NODE_HEIGHT,
@@ -31,7 +31,7 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
       }}
     >
       {/* Nombre de la tabla */}
-      <div className="p-2 bg-gray-100 border-b text-center">
+      <div className="p-2 bg-gray-900 bg-[#505050] border-b text-center">
         <span className="font-semibold text-sm">{tableName}</span>
       </div>
 
@@ -53,7 +53,7 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
                   id={`target__${tableName}__${f.name}`}
                   style={{
                     top: yPos,
-                    background: "#555",
+                    background: "#fff",
                     width: 8,
                     height: 8,
                     borderRadius: 4,
@@ -66,7 +66,7 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
                   id={`source__${tableName}__${f.name}`}
                   style={{
                     top: yPos,
-                    background: "#555",
+                    background: "#fff",
                     width: 8,
                     height: 8,
                     borderRadius: 4,
@@ -92,7 +92,7 @@ const TableNode: React.FC<NodeProps<TableNodeData>> = ({ data }) => {
         )}
       </div>
 
-      <div className="p-2 bg-gray-50 border-t">
+      <div className="p-2 bg-gray-700 border-t">
         <button
           onClick={() => onOpenEditor(tableName)}
           className="w-full px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
