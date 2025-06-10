@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { consultaIA } from './servicios/openaiClient.js';
 import { generarToken, verificarToken } from './servicios/auth.js';
+import { visitasPortafolio } from './servicios/visitasPortafolio.js';
 
 dotenv.config();
 
@@ -19,7 +20,7 @@ app.get('/', (_req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
+  const { username = "", password = "" } = req.body || {};
   // Validación muy simplificada (solo ejemplo)
   if (username === 'username' && password === 'password') {
     // Generamos un payload mínimo; podrías incluir más datos (rol, id, etc.)
@@ -46,6 +47,15 @@ app.post('/query', verificarToken, async (req, res) => {
   } catch (err) {
     console.error('🔴 ERROR en /api/query:', err);
     return res.status(500).json({ error: 'Error interno al consultar la IA.' });
+  }
+});
+
+app.post('/visitasPortafolio', async (req, res) => {
+  try {
+    await visitasPortafolio(req);
+    return
+  } catch (err) {
+    return res.status(500).json({ error: '🔴 ERROR en /visitasPortafolio' });
   }
 });
 

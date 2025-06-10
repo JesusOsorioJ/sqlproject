@@ -5,9 +5,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const authApi = axios.create({
-  baseURL: process.env.URL_BASE,       // Por ejemplo: https://recruiting.adere.so
+  baseURL: process.env.URL_BASE,
   headers: {
-    Authorization: `Bearer ${process.env.TOKEN}` // Tu token en .env
+    Authorization: `Bearer ${process.env.TOKEN}`
   },
 });
 
