@@ -11,6 +11,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// ✅ Confía en encabezados de proxy (Render)
+app.set('trust proxy', true);
+
 // Middlewares globales
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '2mb' }));
