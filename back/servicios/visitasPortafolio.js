@@ -9,22 +9,23 @@ const api = axios.create({
 
 export async function visitasPortafolio(req) {
     try {
-        const ip = req.clientIp || req.headers['x-forwarded-for'] || req.ip;
-        console.log({ip});
-        // Obtener ciudad usando API externa (opcional)
-        const ipInfo = await axios.get(`https://ipapi.co/${ip}/json/`);
-        const ciudad = ipInfo.data.city || "Desconocida";
-        const hora = new Date().toISOString();
+        const ip =
+            req.headers["x-forwarded-for"]?.split(",")[0] || req.connection.remoteAddress;
 
-        const body = {
+        // Consultar geolocalización
+        const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+        const geoData = await geoRes.json();
+
+        const payload = {
             ip,
-            latitude,
-            longitud,
-            ciudad,
-            hora
+            ciudad: geoData.city,
+            latitude: geoData.latitude,
+            longitud: geoData.longitude,
+            hora: new Date().toISOString(),
         };
-        await api.post('/', body);
-        return 'Añadido correctamente'
+
+        await api.post('/', payload);
+        return { status: "ok" }
     } catch (error) {
         console.error('🔴 ERROR en visitasPortafolio:', error.response?.data || error.message);
         throw error;
