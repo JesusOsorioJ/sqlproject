@@ -139,7 +139,7 @@ export default function Diagram({ className, onTableSelect }: DiagramProps) {
         <p>No hay tablas en el esquema.</p>
     ) : (
       <>
-        <p className="m-2 text-sm text-gray-300">Haz clic en → “Editar” en un nodo para ver sus propiedades.</p>
+        <p className="m-2 text-sm text-gray-300">Haz clic en → “Editar” en un nodo para ver sus propiedades. Click en esquina inferior ⛶ para centrar</p>
         <ReactFlow
           nodes={nodes}
           edges={edges}

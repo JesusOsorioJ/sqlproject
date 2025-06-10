@@ -56,7 +56,7 @@ app.post('/query', verificarToken, async (req, res) => {
 app.post('/visitasPortafolio', async (req, res) => {
   try {
     await visitasPortafolio(req);
-    return
+    return res.json({ respuesta: "Correcto" });
   } catch (err) {
     return res.status(500).json({ error: '🔴 ERROR en /visitasPortafolio' });
   }

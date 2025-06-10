@@ -62,7 +62,7 @@ const App: React.FC = () => {
                           Propiedades de “{selectedTable}”
                         </h3>
                         <button
-                          className="px-4 py-2 rounded-lg text-white cursor-not-allowed"
+                          className="px-4 py-2 rounded-lg text-white hover:bg-red-400"
                           onClick={() => setSelectedTable("")}
                         >
                           Cerrar
@@ -151,7 +151,7 @@ const TableDropdown: React.FC<TableDropdownProps> = ({ selectedTable, onChange }
 
   return (
     <select
-      className="w-full border px-2 py-1 rounded-lg"
+      className="w-full border px-2 py-1 rounded-lg bg-gray-900"
       value={selectedTable}
       onChange={(e) => onChange(e.target.value)}
     >
