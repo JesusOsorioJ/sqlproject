@@ -12,6 +12,8 @@ export async function visitasPortafolio(req) {
         const ip =
             req.headers["x-forwarded-for"]?.split(",")[0] || req.connection.remoteAddress;
 
+        console.log({ip})
+
         // Consultar geolocalización
         const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
         const geoData = await geoRes.json();
