@@ -3,16 +3,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const api = axios.create({
-    baseURL: process.env.URL_BASE_SCRIPT_GOOGLE,
-});
-
 export async function visitasPortafolio(req) {
     try {
         const ip =
             req.headers["x-forwarded-for"]?.split(",")[0] || req.connection.remoteAddress;
 
-        console.log({ip})
+        console.log({ ip })
 
         // Consultar geolocalización
         const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
@@ -26,7 +22,13 @@ export async function visitasPortafolio(req) {
             hora: new Date().toISOString(),
         };
 
-        await api.post('/', payload);
+        console.log({ payload })
+
+        await fetch(process.env.URL_BASE_SCRIPT_GOOGLE, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
         return { status: "ok" }
     } catch (error) {
         console.error('🔴 ERROR en visitasPortafolio:', error.response?.data || error.message);
