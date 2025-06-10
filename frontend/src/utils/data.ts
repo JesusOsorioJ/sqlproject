@@ -1,3 +1,4 @@
+import alasql from "alasql";
 import type { RowData, SchemaDef } from "../contexts/SchemaContext";
 
 /**
@@ -181,7 +182,6 @@ export function isValidData(obj: any, schema: SchemaDef): boolean {
  *  - La estructura completa de la base de datos convertida a JSON.
  *  - Que se genere única y exclusivamente la consulta SQL, sin texto adicional.
  *  - El texto en lenguaje natural (naturalText).
- *  - La regla de “intentar hasta 5 veces” y, si falla, devolver error fijo.
  */
 export function buildSQLPrompt(
   schemaObject: SchemaDef,
@@ -198,27 +198,28 @@ Genera únicamente la consulta SQL válida para la siguiente petición en lengua
 "${naturalText}"
 
 La tabla principal que se consulta es "${tableName}".  
-– Tu respuesta debe ser solamente la cadena SQL, sin texto adicional ni explicaciones.  
-– Si tu primera respuesta no es un SQL válido (que comience con SELECT y contenga el nombre de la tabla), inténtalo de nuevo hasta 5 veces.  
-– Si después de 5 intentos aún no generas un SQL válido, responde exactamente (sin comillas ni texto extra):
-Error: no fue posible generar una consulta SQL válida tras 5 intentos.
-    `.trim();
+– Devuelve solo la consulta SQL, sin ningún delimitador de Markdown (por ejemplo, sin usar caracteres de acento grave \` ni triples acentos graves).  
+– No incluyas texto adicional ni explicaciones.  
+– Ejemplo de respuesta esperada:
+SELECT columna1, columna2 FROM Tabla WHERE condición;
+  `.trim();
 }
+
 
 /**
 * Valida de forma básica si el SQL generado es “válido”:
 * - Empieza con SELECT (ignorando mayúsculas/minúsculas y espacios iniciales)
 * - Contiene el nombre de la tabla en alguna parte
 */
-export function isValidSQL(sql: string, tableName: string): boolean {
-  if (typeof sql !== "string") return false;
-  if (typeof tableName !== "string") return false;
-
-  // const trimmed = sql.trim().toLowerCase();
-  // if (!trimmed.startsWith("select")) return false;
-  // // Verificamos que aparezca la tabla (ignorando mayúsculas)
-  // if (!trimmed.includes(tableName.toLowerCase())) return false;
-  return true;
+export function isValidSQL(sql: string): boolean {
+  try {
+    // parsea la consulta sin ejecutarla
+    alasql.parse(sql);
+    return true;
+  } catch (e: any) {
+    console.warn("SQL inválido detectado por AlaSQL:", e.message);
+    return false;
+  }
 }
 
 

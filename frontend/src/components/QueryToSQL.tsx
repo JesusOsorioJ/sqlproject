@@ -108,7 +108,7 @@ const QueryToSQL: React.FC<QueryToSQLProps> = ({ tableName: propTable }) => {
       intentos++;
       try {
         const respuesta = await consultaIA(prompt);
-        if (isValidSQL(respuesta, selectedTable)) {
+        if (isValidSQL(respuesta)) {
           sqlValido = respuesta.trim();
           break;
         } else {
