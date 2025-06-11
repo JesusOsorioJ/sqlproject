@@ -59,7 +59,7 @@ const SchemaEditor: React.FC = () => {
           window.clearInterval(typingIntervalRef.current);
           typingIntervalRef.current = null;
         }
-        if (callback) {setUserText(texInput); callback();}
+        if (callback) {callback();}
       }
     }, 10);
   };
@@ -158,6 +158,7 @@ const SchemaEditor: React.FC = () => {
       setSchema(chosen.schema);
       setPendingData(chosen.data);
       setError(null);
+      setUserText(chosen.paragraph); 
     });
   };
 
