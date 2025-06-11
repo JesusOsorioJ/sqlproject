@@ -155,10 +155,10 @@ const SchemaEditor: React.FC = () => {
 
     typeParagraph(chosen.paragraph, () => {
       clearAll();
+      setUserText(chosen.paragraph); 
       setSchema(chosen.schema);
       setPendingData(chosen.data);
       setError(null);
-      setUserText(chosen.paragraph); 
     });
   };
 
