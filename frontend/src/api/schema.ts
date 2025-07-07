@@ -14,7 +14,7 @@ const CREDENTIALS = {
 const TOKEN_KEY = 'mi_app_token';
 
 // Tiempo (ms) cada cuánto refrescar el token (60 segundos = 60000 ms)
-const REFRESH_INTERVAL = 60 * 1000;
+const REFRESH_INTERVAL = 15 * 60 * 1000 ;
 
 // --------------------------------
 
@@ -141,3 +141,6 @@ export function arrancarAutoRefreshToken() {
     });
   }, REFRESH_INTERVAL);
 }
+
+// Para levantar servidor que se apaga por no usar en un periodo de tiempo
+arrancarAutoRefreshToken()
